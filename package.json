@@ -1,0 +1,17 @@
+{
+  "name": "nasa-spaceapps-challenge",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+  "start": "parcel index.html --open",
+  "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "parcel-bundler": "^1.12.5"
+  }
+}

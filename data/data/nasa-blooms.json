@@ -1,0 +1,44 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "intensity": 120,
+                "type": "Dinoflagellate (HAB)",
+                "date": "2025-09-30 08:30 UTC",
+                "source": "VIIRS-SNPP"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-120, 34] 
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "intensity": 65,
+                "type": "Diatom Bloom",
+                "date": "2025-09-29 15:45 UTC",
+                "source": "MODIS-Aqua"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [50, -20]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "intensity": 30,
+                "type": "Coccolithophore (Low)",
+                "date": "2025-09-30 01:00 UTC",
+                "source": "Sentinel-3 OLCI"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [25, 55] 
+            }
+        }
+    ]
+}

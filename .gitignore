@@ -1,0 +1,8 @@
+# Node dependencies and build folders
+/node_modules
+/.cache
+/dist
+/package-lock.json
+
+# Generated data
+*.nc
