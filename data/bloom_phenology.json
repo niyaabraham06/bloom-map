@@ -1,0 +1,158 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8356771.517165279,
+                    1115309.5418208682
+                ]
+            },
+            "properties": {
+                "name": "High Vegetation Zone",
+                "intensity": "Moderate Greenness",
+                "date": "2024 Bloom Period Proxy",
+                "species_proxy": "Generic Vegetation",
+                "ndvi_peak": 0.25
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8354107.469045244,
+                    1114382.9163878122
+                ]
+            },
+            "properties": {
+                "name": "High Vegetation Zone",
+                "intensity": "Moderate Greenness",
+                "date": "2024 Bloom Period Proxy",
+                "species_proxy": "Generic Vegetation",
+                "ndvi_peak": 0.25
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8352775.444985224,
+                    1113630.0332234544
+                ]
+            },
+            "properties": {
+                "name": "High Vegetation Zone",
+                "intensity": "Moderate Greenness",
+                "date": "2024 Bloom Period Proxy",
+                "species_proxy": "Generic Vegetation",
+                "ndvi_peak": 0.25
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8353644.156328715,
+                    1113224.6345964922
+                ]
+            },
+            "properties": {
+                "name": "High Vegetation Zone",
+                "intensity": "Moderate Greenness",
+                "date": "2024 Bloom Period Proxy",
+                "species_proxy": "Generic Vegetation",
+                "ndvi_peak": 0.25
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8357813.97077747,
+                    1112645.4937008324
+                ]
+            },
+            "properties": {
+                "name": "High Vegetation Zone",
+                "intensity": "Moderate Greenness",
+                "date": "2024 Bloom Period Proxy",
+                "species_proxy": "Generic Vegetation",
+                "ndvi_peak": 0.25
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8355742.301059277,
+                    1113188.2314544793
+                ]
+            },
+            "properties": {
+                "name": "High Vegetation Zone",
+                "intensity": "Moderate Greenness",
+                "date": "2024 Bloom Period Proxy",
+                "species_proxy": "Generic Vegetation",
+                "ndvi_peak": 0.25
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8355149.922657432,
+                    1111139.7273721162
+                ]
+            },
+            "properties": {
+                "name": "High Vegetation Zone",
+                "intensity": "Moderate Greenness",
+                "date": "2024 Bloom Period Proxy",
+                "species_proxy": "Generic Vegetation",
+                "ndvi_peak": 0.25
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8357273.439274851,
+                    1110367.5395112361
+                ]
+            },
+            "properties": {
+                "name": "High Vegetation Zone",
+                "intensity": "Moderate Greenness",
+                "date": "2024 Bloom Period Proxy",
+                "species_proxy": "Generic Vegetation",
+                "ndvi_peak": 0.25
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8355566.411216439,
+                    1110203.2442216873
+                ]
+            },
+            "properties": {
+                "name": "High Vegetation Zone",
+                "intensity": "Moderate Greenness",
+                "date": "2024 Bloom Period Proxy",
+                "species_proxy": "Generic Vegetation",
+                "ndvi_peak": 0.25
+            }
+        }
+    ]
+}
