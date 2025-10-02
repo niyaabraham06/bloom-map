@@ -51,7 +51,7 @@ function onEachFeature(feature, layer) {
 }
 
 // --- 4. Load Data and Add to Map ---
-fetch('./data/nasa-blooms.json') // This is the placeholder for your NASA data
+fetch('/data/nasa-blooms.json') // This is the placeholder for your NASA data
     .then(response => response.json())
     .then(data => {
         L.geoJSON(data, {
@@ -85,5 +85,5 @@ const GIBS_CHL_LAYER = L.tileLayer.wms('https://gibs.earthdata.nasa.gov/wms/epsg
     attribution: 'NASA GIBS (Chlorophyll-a)',
     opacity: 0.8,
     // Ensure the data is recent (daily data)
-    time: new Date().toISOString().split('T')[0] 
+    //time: new Date().toISOString().split('T')[0] 
 }).addTo(map);
