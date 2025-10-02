@@ -1,105 +1,125 @@
-import os
-import numpy as np
-import netCDF4 as nc
+# BloomWatch Phenology Data Processor
+# This script processes local NASA Earth Observation GeoTIFF data (NDVI time series)
+# to generate a simplified GeoJSON file for the Leaflet map visualization.
+
 import json
-import requests
-from geojson import Feature, Point, FeatureCollection
+import numpy as np
+import rasterio
+from rasterio.features import shapes
+from shapely.geometry import shape, Point
+# NOTE: geopandas and fiona imports are often necessary for complex vector operations,
+# but using rasterio.features.shapes() is often enough for simple GeoJSON output.
+# If you run into errors, ensure you install geopandas/fiona in your environment.
 
-# --- CONFIGURATION ---
-# NASA data source details (Chlorophyll-a from MODIS-Aqua NRT)
-# This example uses a static URL. Replace this with a system to fetch the LATEST NRT file.
-NASA_DATA_URL = "https://oceandata.sci.gsfc.nasa.gov/cgi/getfile/A20252652025265.L3m_DAY_CHL_chl_ocx.nc"
-LOCAL_NETCDF_FILE = "nasa_nrt_data.nc"
-OUTPUT_GEOJSON_FILE = "data/nasa-blooms.json"
-CHL_THRESHOLD = 0.5  # Chlorophyll-a concentration threshold for a "bloom" (mg/m³)
+# Define the output file path where the processed data will be saved
+OUTPUT_FILE = './niyaabraham06/bloom-map/bloom-map-69692155a40f0e80eead89e14a3e3660f418b532/data/bloom_phenology.json'
 
-import os # Import the os library at the top
+# IMPORTANT: This path points to the GeoTIFF file you placed in the data folder.
+# NOTE: I am adjusting the RAW_NDVI_FILE path to point relative to the nested folder
+# where the file is actually located, assuming you run this from the parent directory.
+RAW_NDVI_FILE = './niyaabraham06/bloom-map/bloom-map-69692155a40f0e80eead89e14a3e3660f418b532/data/ndvi_series.tif' 
 
-# ... (rest of your imports and config) ...
+# --- WARNING: MODIS NDVI data is often scaled (e.g., value 10000 = NDVI 1.0) ---
+# Check the metadata of your GeoTIFF. For MODIS 16-day VI, values are typically scaled by 10000.
+SCALE_FACTOR = 10000.0
 
-def download_data(url, filename):
-    """Downloads the NetCDF file from NASA and checks for size/validity."""
-    print(f"Downloading data from: {url}...")
+
+def calculate_bloom_proxy():
+    """
+    Reads a GeoTIFF time series, identifies bloom events (high NDVI), 
+    and converts the key locations into a GeoJSON FeatureCollection.
+    """
+    print(f"Starting processing using raw file: {RAW_NDVI_FILE}...")
+
     try:
-        # NOTE: For Earthdata access, you often need to provide credentials
-        r = requests.get(url, allow_redirects=True, timeout=90)
-        r.raise_for_status() # Check for HTTP errors
+        # Open the GeoTIFF file
+        with rasterio.open(RAW_NDVI_FILE) as src:
+            # Read all bands (assuming each band is a slice in time, e.g., weekly)
+            ndvi_array = src.read().astype('float32') 
+            profile = src.profile
 
-        with open(filename, 'wb') as f:
-            f.write(r.content)
-        
-        # Check if the downloaded file is suspiciously small (e.g., less than 50 KB)
-        # An error/login page is usually small. A NetCDF file is large.
-        if os.path.getsize(filename) < 50000: 
-             print("WARNING: Downloaded file is too small. It might be an HTML error page.")
-             print("Please ensure you have an **Earthdata Login** and use a proper API or NASA tool for data access.")
-             return False # Treat as a failure
-             
-        print("Download successful and file size seems correct.")
-        return True
-        
-    except requests.exceptions.RequestException as e:
-        print(f"CRITICAL ERROR during download: {e}")
-        return False
+            # 1. Scale the data to be between -1.0 and 1.0
+            scaled_ndvi_array = ndvi_array / SCALE_FACTOR
+            
+            # 2. ANALYZE PHENOLOGY: Find the pixel-wise maximum NDVI value across the time series.
+            max_ndvi = np.amax(scaled_ndvi_array, axis=0)
+            
+            # 3. DEFINE A THRESHOLD: Identify areas where the peak NDVI is very high (potential intense bloom)
+            # 0.80 is a conservative threshold for intense, healthy vegetation/bloom.
+            bloom_threshold = 0.80
+            blooming_pixels = max_ndvi >= bloom_threshold
 
-def process_netcdf_to_geojson(netcdf_file):
-    """Reads NetCDF, filters blooms, and converts to GeoJSON."""
-    try:
-        data = nc.Dataset(netcdf_file)
-    except FileNotFoundError:
-        print(f"Error: NetCDF file not found at {netcdf_file}")
-        return
+            # 4. VECTORIZE: Convert the high-NDVI pixels into GeoJSON point data.
+            features = []
+            
+            # Use rasterio to iterate through the raster and extract geometry and value
+            # The mask argument ensures we only look at pixels that passed the threshold.
+            for geom, val in shapes(blooming_pixels.astype(np.int16), mask=blooming_pixels, transform=src.transform):
+                # Calculate the centroid of the geometry (area of high bloom)
+                s = shape(geom)
+                centroid = s.centroid
 
-    # Extract required variables
-    lats = data.variables['lat'][:]
-    lons = data.variables['lon'][:]
-    chl_a = data.variables['chl_ocx'][:]  # Chlorophyll-a array (your intensity)
+                # Create a GeoJSON Feature
+                features.append({
+                    "type": "Feature",
+                    "geometry": { 
+                        "type": "Point", 
+                        "coordinates": [centroid.x, centroid.y] 
+                    },
+                    "properties": {
+                        "name": "High Bloom Zone",
+                        "intensity": "Very High", 
+                        "date": "2024 Bloom Period Peak", 
+                        "species_proxy": "Generic Vegetation Bloom",
+                        "ndvi_peak": round(val, 2)
+                    }
+                })
 
-    # Get metadata for the GeoJSON properties
-    satellite_source = data.sensor
-    date_range = data.time_coverage_start.split('T')[0]
+            print(f"Detected {len(features)} potential bloom zones (GeoJSON points).")
+            
+            # Return the final GeoJSON structure
+            return {
+                "type": "FeatureCollection",
+                "features": features
+            }
 
-    features = []
-    
-    # Iterate through the 2D array (ocean data is gridded)
-    # This loop is simplified for a NetCDF file with lat/lon grids
-    # In a production environment, vectorization (NumPy) is faster.
-    for i in range(len(lats)):
-        for j in range(len(lons)):
-            # Get the Chlorophyll value at this lat/lon
-            intensity = chl_a[i, j] 
-
-            # Step 4: Implement Bloom Threshold (Filter)
-            if intensity is not np.ma.masked and intensity > CHL_THRESHOLD:
-                # Create the GeoJSON properties dictionary
-                properties = {
-                    "intensity": float(f"{intensity:.2f}"), # Two decimal places
-                    "type": "Phytoplankton Bloom",
-                    "date": date_range,
-                    "source": satellite_source
+    except rasterio.RasterioIOError:
+        print(f"ERROR: Could not find or open the raw data file at: {RAW_NDVI_FILE}. Using mock data fallback.")
+        # --- START MOCK DATA RETURN (Fallback) ---
+        return {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": { "type": "Point", "coordinates": [-100.0, 40.0] },
+                    "properties": {
+                        "name": "Midwest Grassland Peak (Mock)",
+                        "intensity": "High",
+                        "date": "2025-05-15",
+                        "species_proxy": "Grass/Cereal Crop Bloom",
+                        "ndvi_peak": 0.85
+                    }
                 }
-                
-                # Create a GeoJSON Point feature
-                point = Point((float(lons[j]), float(lats[i])))
-                features.append(Feature(geometry=point, properties=properties))
+            ]
+        }
+        # --- END MOCK DATA RETURN (Fallback) ---
+    except Exception as e:
+        print(f"An unexpected error occurred during processing: {e}")
+        return None
 
-    print(f"Found {len(features)} bloom features above the threshold.")
-    return FeatureCollection(features)
 
-def save_geojson(geojson_data, output_path):
-    """Writes the GeoJSON FeatureCollection to a file."""
-    if geojson_data and geojson_data['features']:
-        with open(output_path, 'w') as f:
-            json.dump(geojson_data, f)
-        print(f"Successfully saved bloom data to {output_path}")
+def save_to_geojson(geojson_data):
+    """Saves the generated GeoJSON data to the specified output file."""
+    if geojson_data and 'features' in geojson_data and geojson_data['features']:
+        try:
+            with open(OUTPUT_FILE, 'w') as f:
+                json.dump(geojson_data, f, indent=4)
+            print(f"Successfully saved bloom data to {OUTPUT_FILE}")
+        except Exception as e:
+            print(f"ERROR: Failed to save GeoJSON file: {e}")
     else:
-        print("No bloom data to save.")
-
+        print("Data processing resulted in empty or invalid data. Skipping save.")
 
 if __name__ == "__main__":
-    if download_data(NASA_DATA_URL, LOCAL_NETCDF_FILE):
-        geojson_output = process_netcdf_to_geojson(LOCAL_NETCDF_FILE)
-        save_geojson(geojson_output, OUTPUT_GEOJSON_FILE)
-    
-    print("\n--- Pipeline Complete ---")
-    print("If successful, your map is ready to be loaded with real data.")
+    processed_data = calculate_bloom_proxy()
+    save_to_geojson(processed_data)
