@@ -1,1 +1,302 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Global Bloom Watch 🌱 (NASA Data)</title><link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"><link rel="stylesheet" href="/style.99e32e21.css"></head><body> <div id="bloom-map"></div> <div id="legend" class="sidebar"> <h2>Bloom Intensity Legend</h2> </div> <script type="module" src="/main.e623961d.js"></script> </body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloomWatch | Global Phenology Map</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        /* Ensure the map container has a defined height */
+        #map-container {
+            height: calc(100vh - 80px); /* Full viewport height minus header height */
+            width: 100%;
+            z-index: 0;
+        }
+        .view {
+            display: none;
+            min-height: calc(100vh - 80px); /* Content takes full height */
+            padding: 2rem;
+        }
+        .active-view {
+            display: block;
+        }
+        /* Custom styles for aesthetic buttons */
+        .btn-primary {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.3), 0 4px 6px -4px rgba(34, 197, 94, 0.1);
+        }</style>
+    <!-- Load Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body class="min-h-screen">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-md sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-3xl font-extrabold text-green-600 tracking-tight">
+                            <i class="fas fa-seedling mr-2"></i>BloomWatch
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="nav-home" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Home</button>
+                    <button id="nav-map" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Map</button>
+                    <button id="nav-applications" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Impact & Applications</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto">
+
+        <!-- 1. Home View -->
+        <div id="home-view" class="view active-view text-gray-800">
+            <header class="text-center py-20 bg-green-50 rounded-xl shadow-lg mt-8">
+                <h1 class="text-6xl font-extrabold mb-4 text-gray-900">Witness the Pulse of Life.</h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+                    BloomWatch harnesses the power of NASA Earth Observations to track, visualize, and predict **plant flowering phenology** around the globe. Understand climate impacts on ecosystems, agriculture, and public health.
+                </p>
+                <button onclick="showView('map-view')" class="btn-primary bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-700">
+                    Explore the Global Bloom Map
+                </button>
+            </header>
+
+            <section class="mt-16 grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl">
+                    <h2 class="text-2xl font-semibold text-green-600 mb-3">Data Driven</h2>
+                    <p class="text-gray-600">Utilizing high temporal and spectral resolution data from Landsat, MODIS, and VIIRS to detect subtle changes in vegetation health and flowering cycles.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl">
+                    <h2 class="text-2xl font-semibold text-green-600 mb-3">Predictive Insights</h2>
+                    <p class="text-gray-600">Analyze multi-year trends to forecast peak bloom timing, providing crucial lead time for farmers, allergists, and conservation efforts.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl">
+                    <h2 class="text-2xl font-semibold text-green-600 mb-3">For All Users</h2>
+                    <p class="text-gray-600">Designed for scalability, from global monitoring to informing conservation decisions in your specific local region.</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- 2. Map View (The Core Application) -->
+        <div id="map-view" class="view">
+            <h1 class="text-3xl font-bold mb-4 text-gray-800">Global Phenology Tracker</h1>
+            <p class="text-gray-600 mb-4">Visualizing the intensity and timing of flowering events using the latest NASA Earth Observation data.</p>
+            <div id="map-container" class="rounded-xl shadow-xl border-4 border-green-200">
+                <!-- Leaflet map goes here -->
+            </div>
+        </div>
+
+        <!-- 3. Impact & Applications View -->
+        <div id="applications-view" class="view text-gray-800">
+            <h1 class="text-3xl font-bold mb-8 text-gray-900">Impact & Real-World Applications</h1>
+
+            <section class="grid md:grid-cols-2 gap-10">
+                <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-green-500">
+                    <h2 class="text-3xl font-bold text-green-600 mb-4">Precision Agriculture</h2>
+                    <p class="text-gray-700 mb-4">
+                        Accurate phenology tracking is vital for maximizing crop yields. BloomWatch helps farmers:
+                    </p>
+                    <ul class="list-disc list-inside text-gray-600 space-y-2">
+                        <li>**Optimize Pest Management:** Predict pre and post-bloom disease and pest cycles.</li>
+                        <li>**Scheduling:** Forecast key developmental stages like **cotton square formation** or fruit tree flowering for timely harvesting.</li>
+                        <li>**Irrigation:** Inform precise water management based on energy demand during key reproductive stages.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-yellow-500">
+                    <h2 class="text-3xl font-bold text-yellow-600 mb-4">Public Health & Allergy Forecasting</h2>
+                    <p class="text-gray-700 mb-4">
+                        Shifts in bloom timing due to climate change directly impact pollen seasons, affecting millions globally.
+                    </p>
+                    <ul class="list-disc list-inside text-gray-600 space-y-2">
+                        <li>**Pollen Prediction:** Provide regional models for the start, peak, and duration of allergenic pollen production.</li>
+                        <li>**Resource Allocation:** Allow local health agencies and pharmacies to better prepare for allergy season demands.</li>
+                        <li>**Bio-indicators:** Track invasive species bloom cycles, which can sometimes correlate with heightened health risks.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="mt-10 bg-blue-50 p-8 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold text-blue-600 mb-4">Conservation and Ecology</h2>
+                <p class="text-gray-700">
+                    Monitoring phenology provides a critical baseline for ecological studies. BloomWatch enables researchers to track **pollinator-plant mismatch**, where rising temperatures cause plants to bloom before their necessary pollinators emerge, threatening biodiversity. The temporal analysis helps quantify the impact of climate change on specific biomes, from deserts to tropical forests.
+                </p>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>var app = {
+  map: null,
+  currentView: 'home-view',
+  mapContainerId: 'map-container',
+  views: ['home-view', 'map-view', 'applications-view'],
+  // NOTE: Future step will involve fetching this data from the file generated by data_processor.py:
+  // fetch('./data/bloom_phenology.json').then(response => response.json()).then(data => this.loadBloomData(data));
+
+  // Mock Bloom Data (Example GeoJSON - replace with your processed data)
+  mockBloomData: {
+    "type": "FeatureCollection",
+    "features": [{
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-97.7431, 30.2672]
+      },
+      "properties": {
+        "name": "Texas Wildflower Peak",
+        "intensity": "High",
+        "date": "2025-03-20",
+        "species": "Bluebonnet"
+      }
+    }, {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-106.601, 35.106]
+      },
+      "properties": {
+        "name": "New Mexico Desert Bloom",
+        "intensity": "Medium",
+        "date": "2025-04-15",
+        "species": "Prickly Pear"
+      }
+    }, {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-80.1918, 25.7617]
+      },
+      "properties": {
+        "name": "Florida Citrus Bloom",
+        "intensity": "Very High",
+        "date": "2025-02-01",
+        "species": "Orange Blossom"
+      }
+    }]
+  },
+  initMap: function initMap() {
+    if (this.map) return; // Prevent re-initialization
+
+    try {
+      // Initialize the Leaflet map in the designated container
+      this.map = L.map(this.mapContainerId).setView([20, 0], 2);
+
+      // Add a tile layer (using NASA's standard base map is a good practice)
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+      }).addTo(this.map);
+      this.loadBloomData(this.mockBloomData);
+      console.log("Leaflet map initialized successfully.");
+    } catch (error) {
+      console.error("Error initializing Leaflet map:", error);
+      // Provide fallback message in the container if map fails to load
+      document.getElementById(this.mapContainerId).innerHTML = '<div class="flex items-center justify-center h-full text-red-600 font-semibold">Error loading map: Check console for details.</div>';
+    }
+  },
+  loadBloomData: function loadBloomData(data) {
+    // Style function for markers (using a simple color mapping for intensity)
+    var getMarkerColor = function getMarkerColor(intensity) {
+      switch (intensity) {
+        case 'Very High':
+          return 'red';
+        case 'High':
+          return 'orange';
+        case 'Medium':
+          return 'yellow';
+        default:
+          return 'green';
+      }
+    };
+
+    // Add GeoJSON data to the map
+    L.geoJSON(data, {
+      pointToLayer: function pointToLayer(feature, latlng) {
+        // Using standard L.circleMarker to simulate bloom extent
+        return L.circleMarker(latlng, {
+          radius: 8,
+          fillColor: getMarkerColor(feature.properties.intensity),
+          color: "#000",
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.7
+        });
+      },
+      onEachFeature: function onEachFeature(feature, layer) {
+        // Create a detailed popup for each bloom
+        if (feature.properties) {
+          var props = feature.properties;
+          layer.bindPopup("\n                                <h3 class=\"font-bold\">".concat(props.name, "</h3>\n                                <strong>Species:</strong> ").concat(props.species || 'N/A', "<br>\n                                <strong>Intensity:</strong> ").concat(props.intensity, "<br>\n                                <strong>Peak Date:</strong> ").concat(props.date, "<br>\n                                <p class=\"text-xs mt-2\">Mock data - replace with NASA data inferences.</p>\n                            "));
+        }
+      }
+    }).addTo(this.map);
+  },
+  // Handles switching between the three main views
+  showView: function showView(viewId) {
+    var _this = this;
+    // Hide all views
+    this.views.forEach(function (id) {
+      document.getElementById(id).classList.remove('active-view');
+    });
+
+    // Show the requested view
+    var newView = document.getElementById(viewId);
+    newView.classList.add('active-view');
+    this.currentView = viewId;
+
+    // Special handling for the map view
+    if (viewId === this.mapContainerId.replace('-container', '-view')) {
+      this.initMap();
+      // MANDATORY: Invalidate size when map container becomes visible
+      if (this.map) {
+        // Wait briefly for CSS transitions/layout to finish before invalidating
+        setTimeout(function () {
+          return _this.map.invalidateSize();
+        }, 300);
+      }
+    }
+  },
+  // Initialization function run on page load
+  init: function init() {
+    var _this2 = this;
+    // Setup Navigation listeners
+    document.getElementById('nav-home').addEventListener('click', function () {
+      return _this2.showView('home-view');
+    });
+    document.getElementById('nav-map').addEventListener('click', function () {
+      return _this2.showView('map-view');
+    });
+    document.getElementById('nav-applications').addEventListener('click', function () {
+      return _this2.showView('applications-view');
+    });
+
+    // Also hook up the main button on the home screen
+    var exploreButton = document.querySelector('#home-view button');
+    exploreButton.addEventListener('click', function () {
+      return _this2.showView('map-view');
+    });
+  }
+};
+
+// Start the application after the document structure is loaded
+window.onload = function () {
+  return app.init();
+};</script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- Optional: for icons -->
+</body>
+</html>
