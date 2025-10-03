@@ -38,7 +38,9 @@
     <!-- Load Leaflet CSS and JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-</head>
+    <!-- Standard Font Awesome CDN (replaces kit link to fix CORS error) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="/applications.js"></script></head>
 <body class="min-h-screen">
 
     <!-- Navigation Bar -->
@@ -55,8 +57,7 @@
                 <div class="flex items-center space-x-4">
                     <button id="nav-home" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Home</button>
                     <button id="nav-map" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Map</button>
-                    <button id="nav-applications" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Impact & Applications</button>
-                </div>
+                    <a href="/applications.html" id="nav-applications" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Impact & Applications</a></div>
             </div>
         </div>
     </nav>
@@ -71,7 +72,8 @@
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
                     BloomWatch harnesses the power of NASA Earth Observations to track, visualize, and predict **plant flowering phenology** around the globe. Understand climate impacts on ecosystems, agriculture, and public health.
                 </p>
-                <button onclick="showView('map-view')" class="btn-primary bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-700">
+                <!-- NOTE: The 'onclick' attribute has been removed. Navigation is now handled by the JS event listener in app.init() -->
+                <button id="explore-map-btn" class="btn-primary bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-700">
                     Explore the Global Bloom Map
                 </button>
             </header>
@@ -100,44 +102,6 @@
                 <!-- Leaflet map goes here -->
             </div>
         </div>
-
-        <!-- 3. Impact & Applications View -->
-        <div id="applications-view" class="view text-gray-800">
-            <h1 class="text-3xl font-bold mb-8 text-gray-900">Impact & Real-World Applications</h1>
-
-            <section class="grid md:grid-cols-2 gap-10">
-                <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-green-500">
-                    <h2 class="text-3xl font-bold text-green-600 mb-4">Precision Agriculture</h2>
-                    <p class="text-gray-700 mb-4">
-                        Accurate phenology tracking is vital for maximizing crop yields. BloomWatch helps farmers:
-                    </p>
-                    <ul class="list-disc list-inside text-gray-600 space-y-2">
-                        <li>**Optimize Pest Management:** Predict pre and post-bloom disease and pest cycles.</li>
-                        <li>**Scheduling:** Forecast key developmental stages like **cotton square formation** or fruit tree flowering for timely harvesting.</li>
-                        <li>**Irrigation:** Inform precise water management based on energy demand during key reproductive stages.</li>
-                    </ul>
-                </div>
-                <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-yellow-500">
-                    <h2 class="text-3xl font-bold text-yellow-600 mb-4">Public Health & Allergy Forecasting</h2>
-                    <p class="text-gray-700 mb-4">
-                        Shifts in bloom timing due to climate change directly impact pollen seasons, affecting millions globally.
-                    </p>
-                    <ul class="list-disc list-inside text-gray-600 space-y-2">
-                        <li>**Pollen Prediction:** Provide regional models for the start, peak, and duration of allergenic pollen production.</li>
-                        <li>**Resource Allocation:** Allow local health agencies and pharmacies to better prepare for allergy season demands.</li>
-                        <li>**Bio-indicators:** Track invasive species bloom cycles, which can sometimes correlate with heightened health risks.</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section class="mt-10 bg-blue-50 p-8 rounded-xl shadow-lg">
-                <h2 class="text-3xl font-bold text-blue-600 mb-4">Conservation and Ecology</h2>
-                <p class="text-gray-700">
-                    Monitoring phenology provides a critical baseline for ecological studies. BloomWatch enables researchers to track **pollinator-plant mismatch**, where rising temperatures cause plants to bloom before their necessary pollinators emerge, threatening biodiversity. The temporal analysis helps quantify the impact of climate change on specific biomes, from deserts to tropical forests.
-                </p>
-            </section>
-        </div>
-
     </main>
 
     <!-- JavaScript Logic -->
@@ -145,11 +109,31 @@
   map: null,
   currentView: 'home-view',
   mapContainerId: 'map-container',
-  views: ['home-view', 'map-view', 'applications-view'],
-  // NOTE: Future step will involve fetching this data from the file generated by data_processor.py:
-  // fetch('./data/bloom_phenology.json').then(response => response.json()).then(data => this.loadBloomData(data));
+  views: ['home-view', 'map-view'],
+  currentGeoJsonLayer: null,
+  // Track the current GeoJSON layer
 
-  // Mock Bloom Data (Example GeoJSON - replace with your processed data)
+  // 1. New function to fetch the real GeoJSON data
+  fetchBloomData: function fetchBloomData() {
+    var _this = this;
+    // Final path is set to the explicit relative path we fixed: './data/...'
+    var dataPath = './data/bloom_phenology.json';
+    console.log('Attempting to fetch data from:', dataPath);
+    fetch(dataPath).then(function (response) {
+      if (!response.ok) {
+        throw new Error("File not found or server error (".concat(response.status, ")."));
+      }
+      return response.json();
+    }).then(function (data) {
+      console.log("SUCCESS: Loaded ".concat(data.features.length, " real bloom points."));
+      _this.loadBloomData(data);
+    }).catch(function (error) {
+      console.error("CRITICAL ERROR: Failed to fetch bloom data.", error.message, 'Falling back to mock data.');
+      // Fallback to the mock data if the file isn't found
+      _this.loadBloomData(_this.mockBloomData);
+    });
+  },
+  // Mock Bloom Data (This is now only a fallback)
   mockBloomData: {
     "type": "FeatureCollection",
     "features": [{
@@ -159,7 +143,7 @@
         "coordinates": [-97.7431, 30.2672]
       },
       "properties": {
-        "name": "Texas Wildflower Peak",
+        "name": "Texas Wildflower Peak (MOCK)",
         "intensity": "High",
         "date": "2025-03-20",
         "species": "Bluebonnet"
@@ -171,7 +155,7 @@
         "coordinates": [-106.601, 35.106]
       },
       "properties": {
-        "name": "New Mexico Desert Bloom",
+        "name": "New Mexico Desert Bloom (MOCK)",
         "intensity": "Medium",
         "date": "2025-04-15",
         "species": "Prickly Pear"
@@ -183,7 +167,7 @@
         "coordinates": [-80.1918, 25.7617]
       },
       "properties": {
-        "name": "Florida Citrus Bloom",
+        "name": "Florida Citrus Bloom (MOCK)",
         "intensity": "Very High",
         "date": "2025-02-01",
         "species": "Orange Blossom"
@@ -201,7 +185,9 @@
       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
       }).addTo(this.map);
-      this.loadBloomData(this.mockBloomData);
+
+      // Call the fetch function, which will handle loading the real data or the mock fallback
+      this.fetchBloomData();
       console.log("Leaflet map initialized successfully.");
     } catch (error) {
       console.error("Error initializing Leaflet map:", error);
@@ -210,6 +196,11 @@
     }
   },
   loadBloomData: function loadBloomData(data) {
+    // Clear existing GeoJSON layer if any, before adding new data (useful if we implement dynamic refresh later)
+    if (this.currentGeoJsonLayer) {
+      this.map.removeLayer(this.currentGeoJsonLayer);
+    }
+
     // Style function for markers (using a simple color mapping for intensity)
     var getMarkerColor = function getMarkerColor(intensity) {
       switch (intensity) {
@@ -225,7 +216,7 @@
     };
 
     // Add GeoJSON data to the map
-    L.geoJSON(data, {
+    this.currentGeoJsonLayer = L.geoJSON(data, {
       pointToLayer: function pointToLayer(feature, latlng) {
         // Using standard L.circleMarker to simulate bloom extent
         return L.circleMarker(latlng, {
@@ -241,14 +232,31 @@
         // Create a detailed popup for each bloom
         if (feature.properties) {
           var props = feature.properties;
-          layer.bindPopup("\n                                <h3 class=\"font-bold\">".concat(props.name, "</h3>\n                                <strong>Species:</strong> ").concat(props.species || 'N/A', "<br>\n                                <strong>Intensity:</strong> ").concat(props.intensity, "<br>\n                                <strong>Peak Date:</strong> ").concat(props.date, "<br>\n                                <p class=\"text-xs mt-2\">Mock data - replace with NASA data inferences.</p>\n                            "));
+          layer.bindPopup("\n                                <h3 class=\"font-bold\">".concat(props.name || 'Bloom Event', "</h3>\n                                <strong>Species:</strong> ").concat(props.species || 'N/A', "<br>\n                                <strong>Intensity:</strong> ").concat(props.intensity || 'N/A', "<br>\n                                <strong>Peak Date:</strong> ").concat(props.date || 'N/A', "<br>\n                                <p class=\"text-xs mt-2\">Data Source: NASA MODIS NDVI</p>\n                            "));
         }
       }
     }).addTo(this.map);
+
+    // **LOGIC: Fit the map bounds to the loaded points**
+    if (data.features.length > 0) {
+      var bounds = this.currentGeoJsonLayer.getBounds();
+      if (bounds.isValid()) {
+        this.map.fitBounds(bounds, {
+          padding: [50, 50]
+        });
+      }
+      // FALLBACK: If fitBounds fails (e.g., all points identical), manually set view.
+      else {
+        console.warn("Bounds invalid. Manually setting view to the first point.");
+        var firstCoord = data.features[0].geometry.coordinates;
+        // Leaflet coordinates are [Lat, Lng]. GeoJSON are [Lng, Lat]
+        this.map.setView([firstCoord[1], firstCoord[0]], 8);
+      }
+    }
   },
   // Handles switching between the three main views
   showView: function showView(viewId) {
-    var _this = this;
+    var _this2 = this;
     // Hide all views
     this.views.forEach(function (id) {
       document.getElementById(id).classList.remove('active-view');
@@ -264,32 +272,45 @@
       this.initMap();
       // MANDATORY: Invalidate size when map container becomes visible
       if (this.map) {
-        // Wait briefly for CSS transitions/layout to finish before invalidating
+        // Increase timeout for robustness and call fitBounds if data is already loaded
         setTimeout(function () {
-          return _this.map.invalidateSize();
-        }, 300);
+          _this2.map.invalidateSize();
+
+          // Recenter map using the bounds of the loaded layer
+          if (_this2.currentGeoJsonLayer) {
+            var bounds = _this2.currentGeoJsonLayer.getBounds();
+            if (bounds.isValid()) {
+              _this2.map.fitBounds(bounds, {
+                padding: [50, 50]
+              });
+            } else {
+              // If bounds are invalid here, ensure manual centering runs as well
+              var firstCoord = _this2.currentGeoJsonLayer.toGeoJSON().features[0].geometry.coordinates;
+              _this2.map.setView([firstCoord[1], firstCoord[0]], 8);
+            }
+          }
+        }, 500); // Increased time for slower systems/browsers
       }
     }
   },
   // Initialization function run on page load
   init: function init() {
-    var _this2 = this;
-    // Setup Navigation listeners
+    var _this3 = this;
+    // Setup Navigation listeners (using the IDs defined in the HTML)
     document.getElementById('nav-home').addEventListener('click', function () {
-      return _this2.showView('home-view');
+      return _this3.showView('home-view');
     });
     document.getElementById('nav-map').addEventListener('click', function () {
-      return _this2.showView('map-view');
-    });
-    document.getElementById('nav-applications').addEventListener('click', function () {
-      return _this2.showView('applications-view');
+      return _this3.showView('map-view');
     });
 
-    // Also hook up the main button on the home screen
-    var exploreButton = document.querySelector('#home-view button');
-    exploreButton.addEventListener('click', function () {
-      return _this2.showView('map-view');
+    // Hook up the main Explore button
+    document.getElementById('explore-map-btn').addEventListener('click', function () {
+      return _this3.showView('map-view');
     });
+
+    // Initialize the Home view
+    this.showView('home-view');
   }
 };
 
@@ -297,6 +318,5 @@
 window.onload = function () {
   return app.init();
 };</script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- Optional: for icons -->
 </body>
 </html>

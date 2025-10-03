@@ -59,8 +59,7 @@
                 <div class="flex items-center space-x-4">
                     <button id="nav-home" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Home</button>
                     <button id="nav-map" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Map</button>
-                    <button id="nav-applications" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Impact & Applications</button>
-                </div>
+                    <a href="applications.html" id="nav-applications" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Impact & Applications</a></div>
             </div>
         </div>
     </nav>
@@ -105,44 +104,6 @@
                 <!-- Leaflet map goes here -->
             </div>
         </div>
-
-        <!-- 3. Impact & Applications View -->
-        <div id="applications-view" class="view text-gray-800">
-            <h1 class="text-3xl font-bold mb-8 text-gray-900">Impact & Real-World Applications</h1>
-
-            <section class="grid md:grid-cols-2 gap-10">
-                <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-green-500">
-                    <h2 class="text-3xl font-bold text-green-600 mb-4">Precision Agriculture</h2>
-                    <p class="text-gray-700 mb-4">
-                        Accurate phenology tracking is vital for maximizing crop yields. BloomWatch helps farmers:
-                    </p>
-                    <ul class="list-disc list-inside text-gray-600 space-y-2">
-                        <li>**Optimize Pest Management:** Predict pre and post-bloom disease and pest cycles.</li>
-                        <li>**Scheduling:** Forecast key developmental stages like **cotton square formation** or fruit tree flowering for timely harvesting.</li>
-                        <li>**Irrigation:** Inform precise water management based on energy demand during key reproductive stages.</li>
-                    </ul>
-                </div>
-                <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-yellow-500">
-                    <h2 class="text-3xl font-bold text-yellow-600 mb-4">Public Health & Allergy Forecasting</h2>
-                    <p class="text-gray-700 mb-4">
-                        Shifts in bloom timing due to climate change directly impact pollen seasons, affecting millions globally.
-                    </p>
-                    <ul class="list-disc list-inside text-gray-600 space-y-2">
-                        <li>**Pollen Prediction:** Provide regional models for the start, peak, and duration of allergenic pollen production.</li>
-                        <li>**Resource Allocation:** Allow local health agencies and pharmacies to better prepare for allergy season demands.</li>
-                        <li>**Bio-indicators:** Track invasive species bloom cycles, which can sometimes correlate with heightened health risks.</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section class="mt-10 bg-blue-50 p-8 rounded-xl shadow-lg">
-                <h2 class="text-3xl font-bold text-blue-600 mb-4">Conservation and Ecology</h2>
-                <p class="text-gray-700">
-                    Monitoring phenology provides a critical baseline for ecological studies. BloomWatch enables researchers to track **pollinator-plant mismatch**, where rising temperatures cause plants to bloom before their necessary pollinators emerge, threatening biodiversity. The temporal analysis helps quantify the impact of climate change on specific biomes, from deserts to tropical forests.
-                </p>
-            </section>
-        </div>
-
     </main>
 
     <!-- JavaScript Logic -->
@@ -151,7 +112,7 @@
             map: null,
             currentView: 'home-view',
             mapContainerId: 'map-container',
-            views: ['home-view', 'map-view', 'applications-view'],
+            views: ['home-view', 'map-view'],
             currentGeoJsonLayer: null, // Track the current GeoJSON layer
 
             // 1. New function to fetch the real GeoJSON data
@@ -314,7 +275,6 @@
                 // Setup Navigation listeners (using the IDs defined in the HTML)
                 document.getElementById('nav-home').addEventListener('click', () => this.showView('home-view'));
                 document.getElementById('nav-map').addEventListener('click', () => this.showView('map-view'));
-                document.getElementById('nav-applications').addEventListener('click', () => this.showView('applications-view'));
 
                 // Hook up the main Explore button
                 document.getElementById('explore-map-btn').addEventListener('click', () => this.showView('map-view'));
