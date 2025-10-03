@@ -1,58 +1,33 @@
-// modules are defined as an array
-// [ module function, map of requires ]
-//
-// map of requires is short require name -> numeric require
-//
-// anything defined in a previous bundle is accessed via the
-// orig method which is the require for previous bundles
 parcelRequire = (function (modules, cache, entry, globalName) {
-  // Save the require from previous bundle to this closure if any
   var previousRequire = typeof parcelRequire === 'function' && parcelRequire;
   var nodeRequire = typeof require === 'function' && require;
 
   function newRequire(name, jumped) {
     if (!cache[name]) {
       if (!modules[name]) {
-        // if we cannot find the module within our internal map or
-        // cache jump to the current global require ie. the last bundle
-        // that was added to the page.
         var currentRequire = typeof parcelRequire === 'function' && parcelRequire;
         if (!jumped && currentRequire) {
           return currentRequire(name, true);
         }
-
-        // If there are other bundles on this page the require from the
-        // previous one is saved to 'previousRequire'. Repeat this as
-        // many times as there are bundles until the module is found or
-        // we exhaust the require chain.
         if (previousRequire) {
           return previousRequire(name, true);
         }
-
-        // Try the node require function if it exists.
         if (nodeRequire && typeof name === 'string') {
           return nodeRequire(name);
         }
-
         var err = new Error('Cannot find module \'' + name + '\'');
         err.code = 'MODULE_NOT_FOUND';
         throw err;
       }
-
       localRequire.resolve = resolve;
       localRequire.cache = {};
-
       var module = cache[name] = new newRequire.Module(name);
-
       modules[name][0].call(module.exports, localRequire, module, module.exports, this);
     }
-
     return cache[name].exports;
-
     function localRequire(x){
       return newRequire(localRequire.resolve(x));
     }
-
     function resolve(x){
       return modules[name][1][x] || x;
     }
@@ -80,7 +55,6 @@ parcelRequire = (function (modules, cache, entry, globalName) {
     try {
       newRequire(entry[i]);
     } catch (e) {
-      // Save first error but execute all entries
       if (!error) {
         error = e;
       }
@@ -88,34 +62,21 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   if (entry.length) {
-    // Expose entry point to Node, AMD or browser globals
-    // Based on https://github.com/ForbesLindesay/umd/blob/master/template.js
     var mainExports = newRequire(entry[entry.length - 1]);
-
-    // CommonJS
     if (typeof exports === "object" && typeof module !== "undefined") {
       module.exports = mainExports;
-
-    // RequireJS
     } else if (typeof define === "function" && define.amd) {
-     define(function () {
-       return mainExports;
-     });
-
-    // <script>
+      define(function () {
+        return mainExports;
+      });
     } else if (globalName) {
       this[globalName] = mainExports;
     }
   }
-
-  // Override the current require with this new one
   parcelRequire = newRequire;
-
   if (error) {
-    // throw error from earlier, _after updating parcelRequire_
     throw error;
   }
-
   return newRequire;
 })({"node_modules/parcel-bundler/src/builtins/bundle-url.js":[function(require,module,exports) {
 var bundleURL = null;
@@ -126,7 +87,6 @@ function getBundleURLCached() {
   return bundleURL;
 }
 function getBundleURL() {
-  // Attempt to find the URL of the current script and use that as the base URL
   try {
     throw new Error();
   } catch (err) {
@@ -212,8 +172,6 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
           }
         }
       });
-
-      // Enable HMR for CSS by default.
       handled = handled || data.assets.every(function (asset) {
         return asset.type === 'css' && asset.generated.js;
       });
@@ -226,7 +184,6 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
           hmrAcceptRun(v[0], v[1]);
         });
       } else if (location.reload) {
-        // `location` global exists in a web worker context but lacks `.reload()` function.
         location.reload();
       }
     }
@@ -257,8 +214,6 @@ function removeErrorOverlay() {
 function createErrorOverlay(data) {
   var overlay = document.createElement('div');
   overlay.id = OVERLAY_ID;
-
-  // html encode message and stack trace
   var message = document.createElement('div');
   var stackTrace = document.createElement('pre');
   message.innerText = data.error.message;
@@ -342,4 +297,3 @@ function hmrAcceptRun(bundle, id) {
   }
 }
 },{}]},{},["node_modules/parcel-bundler/src/builtins/hmr-runtime.js"], null)
-//# sourceMappingURL=/style.c61ab535.js.map

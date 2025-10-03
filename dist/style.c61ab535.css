@@ -1,12 +1,10 @@
-/* Ensure the page uses the full viewport */
 html, body {
     height: 100%;
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #f0f0f0; /* Light text for dark mode */
+    color: #f0f0f0;
 }
 
-/* Map must have a defined height and fill the screen */
 #bloom-map {
     height: 100vh;
     width: 100vw;
@@ -14,16 +12,15 @@ html, body {
     z-index: 0;
 }
 
-/* Styling for the legend/sidebar (Interactive element 1) */
 .sidebar {
     position: absolute;
     top: 20px;
     right: 20px;
-    z-index: 1000; /* Above the map */
-    background: rgba(0, 0, 0, 0.8); /* Dark, transparent background */
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.8);
     padding: 15px;
     border-radius: 8px;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4); /* Subtle green glow for visual impact */
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
 }
 
 .intensity-marker {
@@ -34,9 +31,7 @@ html, body {
     margin-right: 8px;
     border: 1px solid #fff;
 }
-/* Color scale for intensity (Low: Green, High: Red) */
-.low { background-color: #6dff6d; } /* Light Green */
-.medium { background-color: #ffcc00; } /* Yellow */
-.high { background-color: #ff0000; } /* Red */
 
-/*# sourceMappingURL=/style.c61ab535.css.map */
+.low { background-color: #6dff6d; }
+.medium { background-color: #ffcc00; }
+.high { background-color: #ff0000; }

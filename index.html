@@ -4,30 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BloomWatch | Global Phenology Map</title>
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Inter Font -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;
         }
-        /* Ensure the map container has a defined height */
         #map-container {
-            height: calc(100vh - 80px); /* Full viewport height minus header height */
+            height: calc(100vh - 80px);
             width: 100%;
             z-index: 0;
         }
         .view {
             display: none;
-            min-height: calc(100vh - 80px); /* Content takes full height */
+            min-height: calc(100vh - 80px);
             padding: 2rem;
         }
         .active-view {
             display: block;
         }
-        /* Custom styles for aesthetic buttons */
         .btn-primary {
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
@@ -37,15 +33,12 @@
             box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.3), 0 4px 6px -4px rgba(34, 197, 94, 0.1);
         }
     </style>
-    <!-- Load Leaflet CSS and JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <!-- Standard Font Awesome CDN (replaces kit link to fix CORS error) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 <body class="min-h-screen">
 
-    <!-- Navigation Bar -->
     <nav class="bg-white shadow-md sticky top-0 z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20">
@@ -59,30 +52,24 @@
                 <div class="flex items-center space-x-4">
                     <button id="nav-home" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Home</button>
                     <button id="nav-map" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Map</button>
-                    <a href="applications.html" id="nav-applications" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Impact & Applications</a></div>
+                    <a href="applications.html" id="nav-applications" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Impact & Applications</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content Container -->
     <main class="max-w-7xl mx-auto">
-
-      
-
-        <!-- 1. Home View -->
         <div id="home-view" class="view active-view text-gray-800">
             <header class="text-center py-20 bg-green-50 rounded-xl shadow-lg mt-8">
                 <h1 class="text-6xl font-extrabold mb-4 text-gray-900">Witness the Pulse of Life.</h1>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
                     BloomWatch harnesses the power of NASA Earth Observations to track, visualize, and predict **plant flowering phenology** around the globe. Understand climate impacts on ecosystems, agriculture, and public health.
                 </p>
-                <!-- NOTE: The 'onclick' attribute has been removed. Navigation is now handled by the JS event listener in app.init() -->
                 <button id="explore-map-btn" class="btn-primary bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-700">
                     Explore the Global Bloom Map
                 </button>
             </header>
 
-            <!-- NEW SECTION: What is Phenology -->
             <section class="mt-16 bg-white p-8 rounded-xl shadow-lg max-w-4xl mx-auto">
                 <h2 class="text-3xl font-bold text-green-600 mb-4">What is Phenology?</h2>
                 <p class="text-gray-700 text-lg">
@@ -109,30 +96,22 @@
             </section>
         </div>
 
-        
-
-        <!-- 2. Map View (The Core Application) -->
         <div id="map-view" class="view">
             <h1 class="text-3xl font-bold mb-4 text-gray-800">Global Phenology Tracker</h1>
             <p class="text-gray-600 mb-4">Visualizing the intensity and timing of flowering events using the latest NASA Earth Observation data.</p>
-            <div id="map-container" class="rounded-xl shadow-xl border-4 border-green-200">
-                <!-- Leaflet map goes here -->
-            </div>
+            <div id="map-container" class="rounded-xl shadow-xl border-4 border-green-200"></div>
         </div>
     </main>
 
-    <!-- JavaScript Logic -->
     <script>
         const app = {
             map: null,
             currentView: 'home-view',
             mapContainerId: 'map-container',
             views: ['home-view', 'map-view'],
-            currentGeoJsonLayer: null, // Track the current GeoJSON layer
+            currentGeoJsonLayer: null,
 
-            // 1. New function to fetch the real GeoJSON data
             fetchBloomData: function() {
-                // Final path is set to the explicit relative path we fixed: './data/...'
                 const dataPath = './data/bloom_phenology.json'; 
                 console.log('Attempting to fetch data from:', dataPath);
 
@@ -149,12 +128,10 @@
                     })
                     .catch(error => {
                         console.error(`CRITICAL ERROR: Failed to fetch bloom data.`, error.message, 'Falling back to mock data.');
-                        // Fallback to the mock data if the file isn't found
                         this.loadBloomData(this.mockBloomData);
                     });
             },
 
-            // Mock Bloom Data (This is now only a fallback)
             mockBloomData: {
                 "type": "FeatureCollection",
                 "features": [
@@ -165,35 +142,29 @@
             },
 
             initMap: function() {
-                if (this.map) return; // Prevent re-initialization
+                if (this.map) return;
 
                 try {
-                    // Initialize the Leaflet map in the designated container
                     this.map = L.map(this.mapContainerId).setView([20, 0], 2);
 
-                    // Add a tile layer (using NASA's standard base map is a good practice)
                     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
                         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
                     }).addTo(this.map);
 
-                    // Call the fetch function, which will handle loading the real data or the mock fallback
                     this.fetchBloomData();
                     console.log("Leaflet map initialized successfully.");
 
                 } catch (error) {
                     console.error("Error initializing Leaflet map:", error);
-                    // Provide fallback message in the container if map fails to load
                     document.getElementById(this.mapContainerId).innerHTML = '<div class="flex items-center justify-center h-full text-red-600 font-semibold">Error loading map: Check console for details.</div>';
                 }
             },
 
             loadBloomData: function(data) {
-                // Clear existing GeoJSON layer if any, before adding new data (useful if we implement dynamic refresh later)
                 if (this.currentGeoJsonLayer) {
                     this.map.removeLayer(this.currentGeoJsonLayer);
                 }
 
-                // Style function for markers (using a simple color mapping for intensity)
                 const getMarkerColor = (intensity) => {
                     switch (intensity) {
                         case 'Very High': return 'red';
@@ -203,10 +174,8 @@
                     }
                 };
 
-                // Add GeoJSON data to the map
                 this.currentGeoJsonLayer = L.geoJSON(data, {
                     pointToLayer: (feature, latlng) => {
-                        // Using standard L.circleMarker to simulate bloom extent
                         return L.circleMarker(latlng, {
                             radius: 8,
                             fillColor: getMarkerColor(feature.properties.intensity),
@@ -217,7 +186,6 @@
                         });
                     },
                     onEachFeature: (feature, layer) => {
-                        // Create a detailed popup for each bloom
                         if (feature.properties) {
                             const props = feature.properties;
                             layer.bindPopup(`
@@ -231,75 +199,55 @@
                     }
                 }).addTo(this.map);
                 
-                // **LOGIC: Fit the map bounds to the loaded points**
                 if (data.features.length > 0) {
                     const bounds = this.currentGeoJsonLayer.getBounds();
                     if (bounds.isValid()) {
                         this.map.fitBounds(bounds, { padding: [50, 50] });
-                    }
-                    // FALLBACK: If fitBounds fails (e.g., all points identical), manually set view.
-                    else {
-                         console.warn("Bounds invalid. Manually setting view to the first point.");
-                         const firstCoord = data.features[0].geometry.coordinates;
-                         // Leaflet coordinates are [Lat, Lng]. GeoJSON are [Lng, Lat]
-                         this.map.setView([firstCoord[1], firstCoord[0]], 8); 
+                    } else {
+                        console.warn("Bounds invalid. Manually setting view to the first point.");
+                        const firstCoord = data.features[0].geometry.coordinates;
+                        this.map.setView([firstCoord[1], firstCoord[0]], 8); 
                     }
                 }
             },
 
-            // Handles switching between the three main views
             showView: function(viewId) {
-                // Hide all views
                 this.views.forEach(id => {
                     document.getElementById(id).classList.remove('active-view');
                 });
 
-                // Show the requested view
                 const newView = document.getElementById(viewId);
                 newView.classList.add('active-view');
 
                 this.currentView = viewId;
 
-                // Special handling for the map view
                 if (viewId === this.mapContainerId.replace('-container', '-view')) {
                     this.initMap();
-                    // MANDATORY: Invalidate size when map container becomes visible
                     if (this.map) {
-                        // Increase timeout for robustness and call fitBounds if data is already loaded
                         setTimeout(() => {
                             this.map.invalidateSize();
-                            
-                            // Recenter map using the bounds of the loaded layer
                             if (this.currentGeoJsonLayer) {
                                 const bounds = this.currentGeoJsonLayer.getBounds();
                                 if (bounds.isValid()) {
                                     this.map.fitBounds(bounds, { padding: [50, 50] });
                                 } else {
-                                    // If bounds are invalid here, ensure manual centering runs as well
                                     const firstCoord = this.currentGeoJsonLayer.toGeoJSON().features[0].geometry.coordinates;
                                     this.map.setView([firstCoord[1], firstCoord[0]], 8);
                                 }
                             }
-                        }, 500); // Increased time for slower systems/browsers
+                        }, 500);
                     }
                 }
             },
 
-            // Initialization function run on page load
             init: function() {
-                // Setup Navigation listeners (using the IDs defined in the HTML)
                 document.getElementById('nav-home').addEventListener('click', () => this.showView('home-view'));
                 document.getElementById('nav-map').addEventListener('click', () => this.showView('map-view'));
-
-                // Hook up the main Explore button
                 document.getElementById('explore-map-btn').addEventListener('click', () => this.showView('map-view'));
-
-                // Initialize the Home view
                 this.showView('home-view');
             }
         };
 
-        // Start the application after the document structure is loaded
         window.onload = () => app.init();
     </script>
 </body>

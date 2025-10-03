@@ -1,35 +1,22 @@
-// modules are defined as an array
-// [ module function, map of requires ]
-//
-// map of requires is short require name -> numeric require
-//
-// anything defined in a previous bundle is accessed via the
-// orig method which is the require for previous bundles
+
 parcelRequire = (function (modules, cache, entry, globalName) {
-  // Save the require from previous bundle to this closure if any
   var previousRequire = typeof parcelRequire === 'function' && parcelRequire;
   var nodeRequire = typeof require === 'function' && require;
 
   function newRequire(name, jumped) {
     if (!cache[name]) {
       if (!modules[name]) {
-        // if we cannot find the module within our internal map or
-        // cache jump to the current global require ie. the last bundle
-        // that was added to the page.
+ 
         var currentRequire = typeof parcelRequire === 'function' && parcelRequire;
         if (!jumped && currentRequire) {
           return currentRequire(name, true);
         }
 
-        // If there are other bundles on this page the require from the
-        // previous one is saved to 'previousRequire'. Repeat this as
-        // many times as there are bundles until the module is found or
-        // we exhaust the require chain.
+     
         if (previousRequire) {
           return previousRequire(name, true);
         }
 
-        // Try the node require function if it exists.
         if (nodeRequire && typeof name === 'string') {
           return nodeRequire(name);
         }
@@ -80,7 +67,6 @@ parcelRequire = (function (modules, cache, entry, globalName) {
     try {
       newRequire(entry[i]);
     } catch (e) {
-      // Save first error but execute all entries
       if (!error) {
         error = e;
       }
@@ -88,31 +74,26 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   if (entry.length) {
-    // Expose entry point to Node, AMD or browser globals
-    // Based on https://github.com/ForbesLindesay/umd/blob/master/template.js
+ 
     var mainExports = newRequire(entry[entry.length - 1]);
 
-    // CommonJS
     if (typeof exports === "object" && typeof module !== "undefined") {
       module.exports = mainExports;
 
-    // RequireJS
     } else if (typeof define === "function" && define.amd) {
      define(function () {
        return mainExports;
      });
 
-    // <script>
+   
     } else if (globalName) {
       this[globalName] = mainExports;
     }
   }
 
-  // Override the current require with this new one
   parcelRequire = newRequire;
 
   if (error) {
-    // throw error from earlier, _after updating parcelRequire_
     throw error;
   }
 
@@ -120,10 +101,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 })({"node_modules/leaflet/dist/leaflet-src.js":[function(require,module,exports) {
 var define;
 var global = arguments[3];
-/* @preserve
- * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
- * (c) 2010-2023 Vladimir Agafonkin, (c) 2010-2011 CloudMade
- */
+
 
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -133,14 +111,7 @@ var global = arguments[3];
 
   var version = "1.9.4";
 
-  /*
-   * @namespace Util
-   *
-   * Various utility functions, used by Leaflet internally.
-   */
-
-  // @function extend(dest: Object, src?: Object): Object
-  // Merges the properties of the `src` object (or multiple objects) into `dest` object and returns the latter. Has an `L.extend` shortcut.
+ 
   function extend(dest) {
   	var i, j, len, src;
 
@@ -153,8 +124,7 @@ var global = arguments[3];
   	return dest;
   }
 
-  // @function create(proto: Object, properties?: Object): Object
-  // Compatibility polyfill for [Object.create](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object/create)
+  
   var create$2 = Object.create || (function () {
   	function F() {}
   	return function (proto) {
@@ -163,9 +133,7 @@ var global = arguments[3];
   	};
   })();
 
-  // @function bind(fn: Function, …): Function
-  // Returns a new function bound to the arguments passed, like [Function.prototype.bind](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function/bind).
-  // Has a `L.bind()` shortcut.
+ 
   function bind(fn, obj) {
   	var slice = Array.prototype.slice;
 
@@ -180,12 +148,10 @@ var global = arguments[3];
   	};
   }
 
-  // @property lastId: Number
-  // Last unique ID used by [`stamp()`](#util-stamp)
+ 
   var lastId = 0;
 
-  // @function stamp(obj: Object): Number
-  // Returns the unique ID of an object, assigning it one if it doesn't have it.
+ 
   function stamp(obj) {
   	if (!('_leaflet_id' in obj)) {
   		obj['_leaflet_id'] = ++lastId;
@@ -193,18 +159,12 @@ var global = arguments[3];
   	return obj._leaflet_id;
   }
 
-  // @function throttle(fn: Function, time: Number, context: Object): Function
-  // Returns a function which executes function `fn` with the given scope `context`
-  // (so that the `this` keyword refers to `context` inside `fn`'s code). The function
-  // `fn` will be called no more than one time per given amount of `time`. The arguments
-  // received by the bound function will be any arguments passed when binding the
-  // function, followed by any arguments passed when invoking the bound function.
-  // Has an `L.throttle` shortcut.
+  
   function throttle(fn, time, context) {
   	var lock, args, wrapperFn, later;
 
   	later = function () {
-  		// reset lock and call if queued
+  		
   		lock = false;
   		if (args) {
   			wrapperFn.apply(context, args);
@@ -214,11 +174,10 @@ var global = arguments[3];
 
   	wrapperFn = function () {
   		if (lock) {
-  			// called too soon, queue to call later
+  			
   			args = arguments;
 
   		} else {
-  			// call and lock until later
   			fn.apply(context, arguments);
   			setTimeout(later, time);
   			lock = true;
@@ -228,10 +187,7 @@ var global = arguments[3];
   	return wrapperFn;
   }
 
-  // @function wrapNum(num: Number, range: Number[], includeMax?: Boolean): Number
-  // Returns the number `num` modulo `range` in such a way so it lies within
-  // `range[0]` and `range[1]`. The returned value will be always smaller than
-  // `range[1]` unless `includeMax` is set to `true`.
+  
   function wrapNum(x, range, includeMax) {
   	var max = range[1],
   	    min = range[0],
@@ -239,34 +195,26 @@ var global = arguments[3];
   	return x === max && includeMax ? x : ((x - min) % d + d) % d + min;
   }
 
-  // @function falseFn(): Function
-  // Returns a function which always returns `false`.
   function falseFn() { return false; }
 
-  // @function formatNum(num: Number, precision?: Number|false): Number
-  // Returns the number `num` rounded with specified `precision`.
-  // The default `precision` value is 6 decimal places.
-  // `false` can be passed to skip any processing (can be useful to avoid round-off errors).
+  
   function formatNum(num, precision) {
   	if (precision === false) { return num; }
   	var pow = Math.pow(10, precision === undefined ? 6 : precision);
   	return Math.round(num * pow) / pow;
   }
 
-  // @function trim(str: String): String
-  // Compatibility polyfill for [String.prototype.trim](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String/Trim)
+  
   function trim(str) {
   	return str.trim ? str.trim() : str.replace(/^\s+|\s+$/g, '');
   }
 
-  // @function splitWords(str: String): String[]
-  // Trims and splits the string on whitespace and returns the array of parts.
+  
   function splitWords(str) {
   	return trim(str).split(/\s+/);
   }
 
-  // @function setOptions(obj: Object, options: Object): Object
-  // Merges the given properties to the `options` of the `obj` object, returning the resulting options. See `Class options`. Has an `L.setOptions` shortcut.
+ 
   function setOptions(obj, options) {
   	if (!Object.prototype.hasOwnProperty.call(obj, 'options')) {
   		obj.options = obj.options ? create$2(obj.options) : {};
@@ -277,11 +225,7 @@ var global = arguments[3];
   	return obj.options;
   }
 
-  // @function getParamString(obj: Object, existingUrl?: String, uppercase?: Boolean): String
-  // Converts an object into a parameter URL string, e.g. `{a: "foo", b: "bar"}`
-  // translates to `'?a=foo&b=bar'`. If `existingUrl` is set, the parameters will
-  // be appended at the end. If `uppercase` is `true`, the parameter names will
-  // be uppercased (e.g. `'?A=foo&B=bar'`)
+  
   function getParamString(obj, existingUrl, uppercase) {
   	var params = [];
   	for (var i in obj) {
@@ -292,11 +236,7 @@ var global = arguments[3];
 
   var templateRe = /\{ *([\w_ -]+) *\}/g;
 
-  // @function template(str: String, data: Object): String
-  // Simple templating facility, accepts a template string of the form `'Hello {a}, {b}'`
-  // and a data object like `{a: 'foo', b: 'bar'}`, returns evaluated string
-  // `('Hello foo, bar')`. You can also specify functions instead of strings for
-  // data values — they will be evaluated passing `data` as an argument.
+  
   function template(str, data) {
   	return str.replace(templateRe, function (str, key) {
   		var value = data[key];
@@ -311,28 +251,21 @@ var global = arguments[3];
   	});
   }
 
-  // @function isArray(obj): Boolean
-  // Compatibility polyfill for [Array.isArray](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray)
   var isArray = Array.isArray || function (obj) {
   	return (Object.prototype.toString.call(obj) === '[object Array]');
   };
 
-  // @function indexOf(array: Array, el: Object): Number
-  // Compatibility polyfill for [Array.prototype.indexOf](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf)
-  function indexOf(array, el) {
+   function indexOf(array, el) {
   	for (var i = 0; i < array.length; i++) {
   		if (array[i] === el) { return i; }
   	}
   	return -1;
   }
 
-  // @property emptyImageUrl: String
-  // Data URI string containing a base64-encoded empty GIF image.
-  // Used as a hack to free memory from unused images on WebKit-powered
-  // mobile devices (by setting image `src` to this string).
+
   var emptyImageUrl = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
-  // inspired by https://paulirish.com/2011/requestanimationframe-for-smart-animating/
+ 
 
   function getPrefixed(name) {
   	return window['webkit' + name] || window['moz' + name] || window['ms' + name];
@@ -340,7 +273,6 @@ var global = arguments[3];
 
   var lastTime = 0;
 
-  // fallback for IE 7-8
   function timeoutDefer(fn) {
   	var time = +new Date(),
   	    timeToCall = Math.max(0, 16 - (time - lastTime));
@@ -353,12 +285,7 @@ var global = arguments[3];
   var cancelFn = window.cancelAnimationFrame || getPrefixed('CancelAnimationFrame') ||
   		getPrefixed('CancelRequestAnimationFrame') || function (id) { window.clearTimeout(id); };
 
-  // @function requestAnimFrame(fn: Function, context?: Object, immediate?: Boolean): Number
-  // Schedules `fn` to be executed when the browser repaints. `fn` is bound to
-  // `context` if given. When `immediate` is set, `fn` is called immediately if
-  // the browser doesn't have native support for
-  // [`window.requestAnimationFrame`](https://developer.mozilla.org/docs/Web/API/window/requestAnimationFrame),
-  // otherwise it's delayed. Returns a request ID that can be used to cancel the request.
+ 
   function requestAnimFrame(fn, context, immediate) {
   	if (immediate && requestFn === timeoutDefer) {
   		fn.call(context);
@@ -367,8 +294,7 @@ var global = arguments[3];
   	}
   }
 
-  // @function cancelAnimFrame(id: Number): undefined
-  // Cancels a previous `requestAnimFrame`. See also [window.cancelAnimationFrame](https://developer.mozilla.org/docs/Web/API/window/cancelAnimationFrame).
+
   function cancelAnimFrame(id) {
   	if (id) {
   		cancelFn.call(window, id);
@@ -400,31 +326,20 @@ var global = arguments[3];
     cancelAnimFrame: cancelAnimFrame
   };
 
-  // @class Class
-  // @aka L.Class
-
-  // @section
-  // @uninheritable
-
-  // Thanks to John Resig and Dean Edwards for inspiration!
 
   function Class() {}
 
   Class.extend = function (props) {
 
-  	// @function extend(props: Object): Function
-  	// [Extends the current class](#class-inheritance) given the properties to be included.
-  	// Returns a Javascript function that is a class constructor (to be called with `new`).
+ 
   	var NewClass = function () {
 
   		setOptions(this);
 
-  		// call the constructor
   		if (this.initialize) {
   			this.initialize.apply(this, arguments);
   		}
 
-  		// call all constructor hooks
   		this.callInitHooks();
   	};
 
@@ -435,30 +350,25 @@ var global = arguments[3];
 
   	NewClass.prototype = proto;
 
-  	// inherit parent's statics
   	for (var i in this) {
   		if (Object.prototype.hasOwnProperty.call(this, i) && i !== 'prototype' && i !== '__super__') {
   			NewClass[i] = this[i];
   		}
   	}
 
-  	// mix static properties into the class
   	if (props.statics) {
   		extend(NewClass, props.statics);
   	}
 
-  	// mix includes into the prototype
   	if (props.includes) {
   		checkDeprecatedMixinEvents(props.includes);
   		extend.apply(null, [proto].concat(props.includes));
   	}
 
-  	// mix given properties into the prototype
   	extend(proto, props);
   	delete proto.statics;
   	delete proto.includes;
 
-  	// merge options
   	if (proto.options) {
   		proto.options = parentProto.options ? create$2(parentProto.options) : {};
   		extend(proto.options, props.options);
@@ -466,7 +376,6 @@ var global = arguments[3];
 
   	proto._initHooks = [];
 
-  	// add method for calling all hooks
   	proto.callInitHooks = function () {
 
   		if (this._initHooksCalled) { return; }
@@ -486,8 +395,7 @@ var global = arguments[3];
   };
 
 
-  // @function include(properties: Object): this
-  // [Includes a mixin](#class-includes) into the current class.
+ 
   Class.include = function (props) {
   	var parentOptions = this.prototype.options;
   	extend(this.prototype, props);
@@ -498,15 +406,13 @@ var global = arguments[3];
   	return this;
   };
 
-  // @function mergeOptions(options: Object): this
-  // [Merges `options`](#class-options) into the defaults of the class.
+  
   Class.mergeOptions = function (options) {
   	extend(this.prototype.options, options);
   	return this;
   };
 
-  // @function addInitHook(fn: Function): this
-  // Adds a [constructor hook](#class-constructor-hooks) to the class.
+ 
   Class.addInitHook = function (fn) { // (Function) || (String, args...)
   	var args = Array.prototype.slice.call(arguments, 1);
 
@@ -520,7 +426,6 @@ var global = arguments[3];
   };
 
   function checkDeprecatedMixinEvents(includes) {
-  	/* global L: true */
   	if (typeof L === 'undefined' || !L || !L.Mixin) { return; }
 
   	includes = isArray(includes) ? includes : [includes];
@@ -534,51 +439,19 @@ var global = arguments[3];
   	}
   }
 
-  /*
-   * @class Evented
-   * @aka L.Evented
-   * @inherits Class
-   *
-   * A set of methods shared between event-powered classes (like `Map` and `Marker`). Generally, events allow you to execute some function when something happens with an object (e.g. the user clicks on the map, causing the map to fire `'click'` event).
-   *
-   * @example
-   *
-   * ```js
-   * map.on('click', function(e) {
-   * 	alert(e.latlng);
-   * } );
-   * ```
-   *
-   * Leaflet deals with event listeners by reference, so if you want to add a listener and then remove it, define it as a function:
-   *
-   * ```js
-   * function onClick(e) { ... }
-   *
-   * map.on('click', onClick);
-   * map.off('click', onClick);
-   * ```
-   */
+  
 
   var Events = {
-  	/* @method on(type: String, fn: Function, context?: Object): this
-  	 * Adds a listener function (`fn`) to a particular event type of the object. You can optionally specify the context of the listener (object the this keyword will point to). You can also pass several space-separated types (e.g. `'click dblclick'`).
-  	 *
-  	 * @alternative
-  	 * @method on(eventMap: Object): this
-  	 * Adds a set of type/listener pairs, e.g. `{click: onClick, mousemove: onMouseMove}`
-  	 */
+  
   	on: function (types, fn, context) {
 
-  		// types can be a map of types/handlers
   		if (typeof types === 'object') {
   			for (var type in types) {
-  				// we don't process space-separated events here for performance;
-  				// it's a hot path since Layer uses the on(obj) syntax
+  		
   				this._on(type, types[type], fn);
   			}
 
   		} else {
-  			// types can be a string of space-separated words
   			types = splitWords(types);
 
   			for (var i = 0, len = types.length; i < len; i++) {
@@ -589,21 +462,10 @@ var global = arguments[3];
   		return this;
   	},
 
-  	/* @method off(type: String, fn?: Function, context?: Object): this
-  	 * Removes a previously added listener function. If no function is specified, it will remove all the listeners of that particular event from the object. Note that if you passed a custom context to `on`, you must pass the same context to `off` in order to remove the listener.
-  	 *
-  	 * @alternative
-  	 * @method off(eventMap: Object): this
-  	 * Removes a set of type/listener pairs.
-  	 *
-  	 * @alternative
-  	 * @method off: this
-  	 * Removes all listeners to all events on the object. This includes implicitly attached events.
-  	 */
+  	
   	off: function (types, fn, context) {
 
   		if (!arguments.length) {
-  			// clear all listeners if called without arguments
   			delete this._events;
 
   		} else if (typeof types === 'object') {
@@ -627,20 +489,17 @@ var global = arguments[3];
   		return this;
   	},
 
-  	// attach listener (without syntactic sugar now)
   	_on: function (type, fn, context, _once) {
   		if (typeof fn !== 'function') {
   			console.warn('wrong listener type: ' + typeof fn);
   			return;
   		}
 
-  		// check if fn already there
   		if (this._listens(type, fn, context) !== false) {
   			return;
   		}
 
   		if (context === this) {
-  			// Less memory footprint.
   			context = undefined;
   		}
 
@@ -670,13 +529,11 @@ var global = arguments[3];
 
   		if (arguments.length === 1) { // remove all
   			if (this._firingCount) {
-  				// Set all removed listeners to noop
-  				// so they are not called if remove happens in fire
+  				
   				for (i = 0, len = listeners.length; i < len; i++) {
   					listeners[i].fn = falseFn;
   				}
   			}
-  			// clear all listeners for a type if function isn't specified
   			delete this._events[type];
   			return;
   		}
@@ -686,25 +543,19 @@ var global = arguments[3];
   			return;
   		}
 
-  		// find fn and remove it
   		var index = this._listens(type, fn, context);
   		if (index !== false) {
   			var listener = listeners[index];
   			if (this._firingCount) {
-  				// set the removed listener to noop so that's not called if remove happens in fire
   				listener.fn = falseFn;
 
-  				/* copy array in case events are being fired */
   				this._events[type] = listeners = listeners.slice();
   			}
   			listeners.splice(index, 1);
   		}
   	},
 
-  	// @method fire(type: String, data?: Object, propagate?: Boolean): this
-  	// Fires an event of the specified type. You can optionally provide a data
-  	// object — the first argument of the listener function will contain its
-  	// properties. The event can optionally be propagated to event parents.
+  
   	fire: function (type, data, propagate) {
   		if (!this.listens(type, propagate)) { return this; }
 
@@ -720,7 +571,6 @@ var global = arguments[3];
   				this._firingCount = (this._firingCount + 1) || 1;
   				for (var i = 0, len = listeners.length; i < len; i++) {
   					var l = listeners[i];
-  					// off overwrites l.fn, so we need to copy fn to a var
   					var fn = l.fn;
   					if (l.once) {
   						this.off(type, fn, l.ctx);
@@ -733,23 +583,19 @@ var global = arguments[3];
   		}
 
   		if (propagate) {
-  			// propagate the event to parents (set with addEventParent)
   			this._propagateEvent(event);
   		}
 
   		return this;
   	},
 
-  	// @method listens(type: String, propagate?: Boolean): Boolean
-  	// @method listens(type: String, fn: Function, context?: Object, propagate?: Boolean): Boolean
-  	// Returns `true` if a particular event type has any listeners attached to it.
-  	// The verification can optionally be propagated, it will return `true` if parents have the listener attached to it.
+  
   	listens: function (type, fn, context, propagate) {
   		if (typeof type !== 'string') {
   			console.warn('"string" type argument expected');
   		}
 
-  		// we don't overwrite the input `fn` value, because we need to use it for propagation
+  		
   		var _fn = fn;
   		if (typeof fn !== 'function') {
   			propagate = !!fn;
@@ -765,7 +611,6 @@ var global = arguments[3];
   		}
 
   		if (propagate) {
-  			// also check parents for listeners if event propagates
   			for (var id in this._eventParents) {
   				if (this._eventParents[id].listens(type, fn, context, propagate)) { return true; }
   			}
@@ -773,7 +618,6 @@ var global = arguments[3];
   		return false;
   	},
 
-  	// returns the index (number) or false
   	_listens: function (type, fn, context) {
   		if (!this._events) {
   			return false;
@@ -798,20 +642,18 @@ var global = arguments[3];
 
   	},
 
-  	// @method once(…): this
-  	// Behaves as [`on(…)`](#evented-on), except the listener will only get fired once and then removed.
+  	
   	once: function (types, fn, context) {
 
   		// types can be a map of types/handlers
   		if (typeof types === 'object') {
   			for (var type in types) {
-  				// we don't process space-separated events here for performance;
-  				// it's a hot path since Layer uses the on(obj) syntax
+  			
   				this._on(type, types[type], fn, true);
   			}
 
   		} else {
-  			// types can be a string of space-separated words
+  		
   			types = splitWords(types);
 
   			for (var i = 0, len = types.length; i < len; i++) {
@@ -822,16 +664,14 @@ var global = arguments[3];
   		return this;
   	},
 
-  	// @method addEventParent(obj: Evented): this
-  	// Adds an event parent - an `Evented` that will receive propagated events
+  
   	addEventParent: function (obj) {
   		this._eventParents = this._eventParents || {};
   		this._eventParents[stamp(obj)] = obj;
   		return this;
   	},
 
-  	// @method removeEventParent(obj: Evented): this
-  	// Removes an event parent, so it will stop receiving propagated events
+ 
   	removeEventParent: function (obj) {
   		if (this._eventParents) {
   			delete this._eventParents[stamp(obj)];
@@ -849,61 +689,25 @@ var global = arguments[3];
   	}
   };
 
-  // aliases; we should ditch those eventually
-
-  // @method addEventListener(…): this
-  // Alias to [`on(…)`](#evented-on)
+ 
   Events.addEventListener = Events.on;
 
-  // @method removeEventListener(…): this
-  // Alias to [`off(…)`](#evented-off)
-
-  // @method clearAllEventListeners(…): this
-  // Alias to [`off()`](#evented-off)
+ 
   Events.removeEventListener = Events.clearAllEventListeners = Events.off;
 
-  // @method addOneTimeEventListener(…): this
-  // Alias to [`once(…)`](#evented-once)
+  
   Events.addOneTimeEventListener = Events.once;
 
-  // @method fireEvent(…): this
-  // Alias to [`fire(…)`](#evented-fire)
+
   Events.fireEvent = Events.fire;
 
-  // @method hasEventListeners(…): Boolean
-  // Alias to [`listens(…)`](#evented-listens)
   Events.hasEventListeners = Events.listens;
 
   var Evented = Class.extend(Events);
 
-  /*
-   * @class Point
-   * @aka L.Point
-   *
-   * Represents a point with `x` and `y` coordinates in pixels.
-   *
-   * @example
-   *
-   * ```js
-   * var point = L.point(200, 300);
-   * ```
-   *
-   * All Leaflet methods and options that accept `Point` objects also accept them in a simple Array form (unless noted otherwise), so these lines are equivalent:
-   *
-   * ```js
-   * map.panBy([200, 300]);
-   * map.panBy(L.point(200, 300));
-   * ```
-   *
-   * Note that `Point` does not inherit from Leaflet's `Class` object,
-   * which means new classes can't inherit from it, and new methods
-   * can't be added to it with the `include` function.
-   */
-
+  
   function Point(x, y, round) {
-  	// @property x: Number; The `x` coordinate of the point
   	this.x = (round ? Math.round(x) : x);
-  	// @property y: Number; The `y` coordinate of the point
   	this.y = (round ? Math.round(y) : y);
   }
 
@@ -913,28 +717,23 @@ var global = arguments[3];
 
   Point.prototype = {
 
-  	// @method clone(): Point
-  	// Returns a copy of the current point.
+ 
   	clone: function () {
   		return new Point(this.x, this.y);
   	},
 
-  	// @method add(otherPoint: Point): Point
-  	// Returns the result of addition of the current and the given points.
+  
   	add: function (point) {
-  		// non-destructive, returns a new point
   		return this.clone()._add(toPoint(point));
   	},
 
   	_add: function (point) {
-  		// destructive, used directly for performance in situations where it's safe to modify existing point
   		this.x += point.x;
   		this.y += point.y;
   		return this;
   	},
 
-  	// @method subtract(otherPoint: Point): Point
-  	// Returns the result of subtraction of the given point from the current.
+  
   	subtract: function (point) {
   		return this.clone()._subtract(toPoint(point));
   	},
@@ -945,8 +744,7 @@ var global = arguments[3];
   		return this;
   	},
 
-  	// @method divideBy(num: Number): Point
-  	// Returns the result of division of the current point by the given number.
+  	
   	divideBy: function (num) {
   		return this.clone()._divideBy(num);
   	},
@@ -957,8 +755,7 @@ var global = arguments[3];
   		return this;
   	},
 
-  	// @method multiplyBy(num: Number): Point
-  	// Returns the result of multiplication of the current point by the given number.
+  
   	multiplyBy: function (num) {
   		return this.clone()._multiplyBy(num);
   	},
@@ -969,24 +766,17 @@ var global = arguments[3];
   		return this;
   	},
 
-  	// @method scaleBy(scale: Point): Point
-  	// Multiply each coordinate of the current point by each coordinate of
-  	// `scale`. In linear algebra terms, multiply the point by the
-  	// [scaling matrix](https://en.wikipedia.org/wiki/Scaling_%28geometry%29#Matrix_representation)
-  	// defined by `scale`.
+  	
   	scaleBy: function (point) {
   		return new Point(this.x * point.x, this.y * point.y);
   	},
 
-  	// @method unscaleBy(scale: Point): Point
-  	// Inverse of `scaleBy`. Divide each coordinate of the current point by
-  	// each coordinate of `scale`.
+  	
   	unscaleBy: function (point) {
   		return new Point(this.x / point.x, this.y / point.y);
   	},
 
-  	// @method round(): Point
-  	// Returns a copy of the current point with rounded coordinates.
+  	
   	round: function () {
   		return this.clone()._round();
   	},
@@ -997,8 +787,7 @@ var global = arguments[3];
   		return this;
   	},
 
-  	// @method floor(): Point
-  	// Returns a copy of the current point with floored coordinates (rounded down).
+  	
   	floor: function () {
   		return this.clone()._floor();
   	},
@@ -1009,8 +798,7 @@ var global = arguments[3];
   		return this;
   	},
 
-  	// @method ceil(): Point
-  	// Returns a copy of the current point with ceiled coordinates (rounded up).
+  	
   	ceil: function () {
   		return this.clone()._ceil();
   	},
@@ -1021,8 +809,7 @@ var global = arguments[3];
   		return this;
   	},
 
-  	// @method trunc(): Point
-  	// Returns a copy of the current point with truncated coordinates (rounded towards zero).
+  	
   	trunc: function () {
   		return this.clone()._trunc();
   	},
@@ -1033,8 +820,7 @@ var global = arguments[3];
   		return this;
   	},
 
-  	// @method distanceTo(otherPoint: Point): Number
-  	// Returns the cartesian distance between the current and the given points.
+ 
   	distanceTo: function (point) {
   		point = toPoint(point);
 
@@ -1044,8 +830,7 @@ var global = arguments[3];
   		return Math.sqrt(x * x + y * y);
   	},
 
-  	// @method equals(otherPoint: Point): Boolean
-  	// Returns `true` if the given point has the same coordinates.
+  
   	equals: function (point) {
   		point = toPoint(point);
 
@@ -1053,8 +838,7 @@ var global = arguments[3];
   		       point.y === this.y;
   	},
 
-  	// @method contains(otherPoint: Point): Boolean
-  	// Returns `true` if both coordinates of the given point are less than the corresponding current point coordinates (in absolute values).
+  	
   	contains: function (point) {
   		point = toPoint(point);
 
@@ -1062,8 +846,7 @@ var global = arguments[3];
   		       Math.abs(point.y) <= Math.abs(this.y);
   	},
 
-  	// @method toString(): String
-  	// Returns a string representation of the point for debugging purposes.
+  	
   	toString: function () {
   		return 'Point(' +
   		        formatNum(this.x) + ', ' +
@@ -1071,16 +854,7 @@ var global = arguments[3];
   	}
   };
 
-  // @factory L.point(x: Number, y: Number, round?: Boolean)
-  // Creates a Point object with the given `x` and `y` coordinates. If optional `round` is set to true, rounds the `x` and `y` values.
-
-  // @alternative
-  // @factory L.point(coords: Number[])
-  // Expects an array of the form `[x, y]` instead.
-
-  // @alternative
-  // @factory L.point(coords: Object)
-  // Expects a plain object of the form `{x: Number, y: Number}` instead.
+  
   function toPoint(x, y, round) {
   	if (x instanceof Point) {
   		return x;
@@ -1097,30 +871,7 @@ var global = arguments[3];
   	return new Point(x, y, round);
   }
 
-  /*
-   * @class Bounds
-   * @aka L.Bounds
-   *
-   * Represents a rectangular area in pixel coordinates.
-   *
-   * @example
-   *
-   * ```js
-   * var p1 = L.point(10, 10),
-   * p2 = L.point(40, 60),
-   * bounds = L.bounds(p1, p2);
-   * ```
-   *
-   * All Leaflet methods that accept `Bounds` objects also accept them in a simple Array form (unless noted otherwise), so the bounds example above can be passed like this:
-   *
-   * ```js
-   * otherBounds.intersects([[10, 10], [40, 60]]);
-   * ```
-   *
-   * Note that `Bounds` does not inherit from Leaflet's `Class` object,
-   * which means new classes can't inherit from it, and new methods
-   * can't be added to it with the `include` function.
-   */
+  
 
   function Bounds(a, b) {
   	if (!a) { return; }
@@ -1133,12 +884,7 @@ var global = arguments[3];
   }
 
   Bounds.prototype = {
-  	// @method extend(point: Point): this
-  	// Extends the bounds to contain the given point.
-
-  	// @alternative
-  	// @method extend(otherBounds: Bounds): this
-  	// Extend the bounds to contain the given bounds
+  	
   	extend: function (obj) {
   		var min2, max2;
   		if (!obj) { return this; }
@@ -1153,10 +899,7 @@ var global = arguments[3];
   			if (!min2 || !max2) { return this; }
   		}
 
-  		// @property min: Point
-  		// The top left corner of the rectangle.
-  		// @property max: Point
-  		// The bottom right corner of the rectangle.
+  		
   		if (!this.min && !this.max) {
   			this.min = min2.clone();
   			this.max = max2.clone();
@@ -1169,49 +912,39 @@ var global = arguments[3];
   		return this;
   	},
 
-  	// @method getCenter(round?: Boolean): Point
-  	// Returns the center point of the bounds.
+  	
   	getCenter: function (round) {
   		return toPoint(
   		        (this.min.x + this.max.x) / 2,
   		        (this.min.y + this.max.y) / 2, round);
   	},
 
-  	// @method getBottomLeft(): Point
-  	// Returns the bottom-left point of the bounds.
+  	
   	getBottomLeft: function () {
   		return toPoint(this.min.x, this.max.y);
   	},
 
-  	// @method getTopRight(): Point
-  	// Returns the top-right point of the bounds.
-  	getTopRight: function () { // -> Point
+  	
+  	getTopRight: function () { 
   		return toPoint(this.max.x, this.min.y);
   	},
 
-  	// @method getTopLeft(): Point
-  	// Returns the top-left point of the bounds (i.e. [`this.min`](#bounds-min)).
+  	
   	getTopLeft: function () {
-  		return this.min; // left, top
+  		return this.min; 
   	},
 
-  	// @method getBottomRight(): Point
-  	// Returns the bottom-right point of the bounds (i.e. [`this.max`](#bounds-max)).
+  	
   	getBottomRight: function () {
-  		return this.max; // right, bottom
+  		return this.max; 
   	},
 
-  	// @method getSize(): Point
-  	// Returns the size of the given bounds
+  	
   	getSize: function () {
   		return this.max.subtract(this.min);
   	},
 
-  	// @method contains(otherBounds: Bounds): Boolean
-  	// Returns `true` if the rectangle contains the given one.
-  	// @alternative
-  	// @method contains(point: Point): Boolean
-  	// Returns `true` if the rectangle contains the given point.
+  	
   	contains: function (obj) {
   		var min, max;
 
@@ -1234,10 +967,8 @@ var global = arguments[3];
   		       (max.y <= this.max.y);
   	},
 
-  	// @method intersects(otherBounds: Bounds): Boolean
-  	// Returns `true` if the rectangle intersects the given bounds. Two bounds
-  	// intersect if they have at least one point in common.
-  	intersects: function (bounds) { // (Bounds) -> Boolean
+  	
+  	intersects: function (bounds) { 
   		bounds = toBounds(bounds);
 
   		var min = this.min,
@@ -1250,10 +981,8 @@ var global = arguments[3];
   		return xIntersects && yIntersects;
   	},
 
-  	// @method overlaps(otherBounds: Bounds): Boolean
-  	// Returns `true` if the rectangle overlaps the given bounds. Two bounds
-  	// overlap if their intersection is an area.
-  	overlaps: function (bounds) { // (Bounds) -> Boolean
+  	
+  	overlaps: function (bounds) { 
   		bounds = toBounds(bounds);
 
   		var min = this.min,
@@ -1266,17 +995,13 @@ var global = arguments[3];
   		return xOverlaps && yOverlaps;
   	},
 
-  	// @method isValid(): Boolean
-  	// Returns `true` if the bounds are properly initialized.
+  	
   	isValid: function () {
   		return !!(this.min && this.max);
   	},
 
 
-  	// @method pad(bufferRatio: Number): Bounds
-  	// Returns bounds created by extending or retracting the current bounds by a given ratio in each direction.
-  	// For example, a ratio of 0.5 extends the bounds by 50% in each direction.
-  	// Negative values will retract the bounds.
+  	
   	pad: function (bufferRatio) {
   		var min = this.min,
   		max = this.max,
@@ -1290,8 +1015,7 @@ var global = arguments[3];
   	},
 
 
-  	// @method equals(otherBounds: Bounds): Boolean
-  	// Returns `true` if the rectangle is equivalent to the given bounds.
+  	
   	equals: function (bounds) {
   		if (!bounds) { return false; }
 
@@ -1303,11 +1027,7 @@ var global = arguments[3];
   };
 
 
-  // @factory L.bounds(corner1: Point, corner2: Point)
-  // Creates a Bounds object from two corners coordinate pairs.
-  // @alternative
-  // @factory L.bounds(points: Point[])
-  // Creates a Bounds object from the given array of points.
+ 
   function toBounds(a, b) {
   	if (!a || a instanceof Bounds) {
   		return a;
@@ -1315,37 +1035,9 @@ var global = arguments[3];
   	return new Bounds(a, b);
   }
 
-  /*
-   * @class LatLngBounds
-   * @aka L.LatLngBounds
-   *
-   * Represents a rectangular geographical area on a map.
-   *
-   * @example
-   *
-   * ```js
-   * var corner1 = L.latLng(40.712, -74.227),
-   * corner2 = L.latLng(40.774, -74.125),
-   * bounds = L.latLngBounds(corner1, corner2);
-   * ```
-   *
-   * All Leaflet methods that accept LatLngBounds objects also accept them in a simple Array form (unless noted otherwise), so the bounds example above can be passed like this:
-   *
-   * ```js
-   * map.fitBounds([
-   * 	[40.712, -74.227],
-   * 	[40.774, -74.125]
-   * ]);
-   * ```
-   *
-   * Caution: if the area crosses the antimeridian (often confused with the International Date Line), you must specify corners _outside_ the [-180, 180] degrees longitude range.
-   *
-   * Note that `LatLngBounds` does not inherit from Leaflet's `Class` object,
-   * which means new classes can't inherit from it, and new methods
-   * can't be added to it with the `include` function.
-   */
+  
 
-  function LatLngBounds(corner1, corner2) { // (LatLng, LatLng) or (LatLng[])
+  function LatLngBounds(corner1, corner2) { 
   	if (!corner1) { return; }
 
   	var latlngs = corner2 ? [corner1, corner2] : corner1;
@@ -1357,12 +1049,7 @@ var global = arguments[3];
 
   LatLngBounds.prototype = {
 
-  	// @method extend(latlng: LatLng): this
-  	// Extend the bounds to contain the given point
-
-  	// @alternative
-  	// @method extend(otherBounds: LatLngBounds): this
-  	// Extend the bounds to contain the given bounds
+  
   	extend: function (obj) {
   		var sw = this._southWest,
   		    ne = this._northEast,
@@ -1395,10 +1082,7 @@ var global = arguments[3];
   		return this;
   	},
 
-  	// @method pad(bufferRatio: Number): LatLngBounds
-  	// Returns bounds created by extending or retracting the current bounds by a given ratio in each direction.
-  	// For example, a ratio of 0.5 extends the bounds by 50% in each direction.
-  	// Negative values will retract the bounds.
+  	
   	pad: function (bufferRatio) {
   		var sw = this._southWest,
   		    ne = this._northEast,
@@ -1410,40 +1094,34 @@ var global = arguments[3];
   		        new LatLng(ne.lat + heightBuffer, ne.lng + widthBuffer));
   	},
 
-  	// @method getCenter(): LatLng
-  	// Returns the center point of the bounds.
+  	
   	getCenter: function () {
   		return new LatLng(
   		        (this._southWest.lat + this._northEast.lat) / 2,
   		        (this._southWest.lng + this._northEast.lng) / 2);
   	},
 
-  	// @method getSouthWest(): LatLng
-  	// Returns the south-west point of the bounds.
+  
   	getSouthWest: function () {
   		return this._southWest;
   	},
 
-  	// @method getNorthEast(): LatLng
-  	// Returns the north-east point of the bounds.
+  
   	getNorthEast: function () {
   		return this._northEast;
   	},
 
-  	// @method getNorthWest(): LatLng
-  	// Returns the north-west point of the bounds.
+ 
   	getNorthWest: function () {
   		return new LatLng(this.getNorth(), this.getWest());
   	},
 
-  	// @method getSouthEast(): LatLng
-  	// Returns the south-east point of the bounds.
+  
   	getSouthEast: function () {
   		return new LatLng(this.getSouth(), this.getEast());
   	},
 
-  	// @method getWest(): Number
-  	// Returns the west longitude of the bounds
+ 
   	getWest: function () {
   		return this._southWest.lng;
   	},
@@ -14657,7 +14335,6 @@ function getColor(intensity) {
   '#6dff6d'; // Low Bloom (Light Green)
 }
 
-// Function to style the GeoJSON features
 function styleFeature(feature) {
   return {
     radius: 8,
@@ -14670,12 +14347,10 @@ function styleFeature(feature) {
   };
 }
 
-// Function to create Circle Markers instead of default icons
 function pointToLayer(feature, latlng) {
   return L.circleMarker(latlng, styleFeature(feature));
 }
 
-// Function to handle click events and show details (Goal: Clickable Details)
 function onEachFeature(feature, layer) {
   if (feature.properties) {
     var props = feature.properties;
@@ -14684,14 +14359,12 @@ function onEachFeature(feature, layer) {
   }
 }
 
-// --- 4. Load Data and Add to Map ---
-fetch('/data/nasa-blooms.json') // This is the placeholder for your NASA data
+fetch('/data/nasa-blooms.json') 
 .then(function (response) {
   return response.json();
 }).then(function (data) {
   L.geoJSON(data, {
     pointToLayer: pointToLayer,
-    // Use custom circle markers
     onEachFeature: onEachFeature
   }).addTo(map);
   console.log("Bloom data loaded and rendered.");
@@ -14699,11 +14372,9 @@ fetch('/data/nasa-blooms.json') // This is the placeholder for your NASA data
   return console.error('Error loading bloom data:', error);
 });
 
-// 5. Update Legend (For the sidebar component)
 document.getElementById('legend').innerHTML += "\n    <div style=\"display: flex; align-items: center; margin-top: 10px;\">\n        <span class=\"intensity-marker high\"></span> High (>100 mg/m\xB3)\n    </div>\n    <div style=\"display: flex; align-items: center;\">\n        <span class=\"intensity-marker medium\"></span> Medium (>50 mg/m\xB3)\n    </div>\n    <div style=\"display: flex; align-items: center;\">\n        <span class=\"intensity-marker low\"></span> Low (<50 mg/m\xB3)\n    </div>\n";
 
-// Add NASA GIBS Chlorophyll-a WMS Layer for near real-time visualization.
-// This provides the colorful, real-time intensity overlay.
+
 var GIBS_CHL_LAYER = L.tileLayer.wms('https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi', {
   layers: 'MODIS_Aqua_Chlorophyll_A',
   // This is the Chlorophyll-a product layer
@@ -14711,8 +14382,7 @@ var GIBS_CHL_LAYER = L.tileLayer.wms('https://gibs.earthdata.nasa.gov/wms/epsg43
   transparent: true,
   attribution: 'NASA GIBS (Chlorophyll-a)',
   opacity: 0.8
-  // Ensure the data is recent (daily data)
-  //time: new Date().toISOString().split('T')[0] 
+
 }).addTo(map);
 },{"leaflet":"node_modules/leaflet/dist/leaflet-src.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -14755,7 +14425,6 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
         }
       });
 
-      // Enable HMR for CSS by default.
       handled = handled || data.assets.every(function (asset) {
         return asset.type === 'css' && asset.generated.js;
       });
@@ -14768,7 +14437,6 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
           hmrAcceptRun(v[0], v[1]);
         });
       } else if (location.reload) {
-        // `location` global exists in a web worker context but lacks `.reload()` function.
         location.reload();
       }
     }
@@ -14800,7 +14468,6 @@ function createErrorOverlay(data) {
   var overlay = document.createElement('div');
   overlay.id = OVERLAY_ID;
 
-  // html encode message and stack trace
   var message = document.createElement('div');
   var stackTrace = document.createElement('pre');
   message.innerText = data.error.message;
@@ -14884,4 +14551,3 @@ function hmrAcceptRun(bundle, id) {
   }
 }
 },{}]},{},["node_modules/parcel-bundler/src/builtins/hmr-runtime.js","src/main.js"], null)
-//# sourceMappingURL=/main.1e43358e.js.map
