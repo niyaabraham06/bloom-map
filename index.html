@@ -1,254 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BloomWatch | Global Phenology Map</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-        }
-        #map-container {
-            height: calc(100vh - 80px);
-            width: 100%;
-            z-index: 0;
-        }
-        .view {
-            display: none;
-            min-height: calc(100vh - 80px);
-            padding: 2rem;
-        }
-        .active-view {
-            display: block;
-        }
-        .btn-primary {
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.3), 0 4px 6px -4px rgba(34, 197, 94, 0.1);
-        }
-    </style>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BloomWatch | Phenology + NDVI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8f9fa;
+    }
+    #map-container {
+      height: calc(100vh - 80px);
+      width: 100%;
+      z-index: 0;
+    }
+    .view {
+      display: none;
+      min-height: calc(100vh - 80px);
+      padding: 2rem;
+    }
+    .active-view {
+      display: block;
+    }
+    .btn-primary {
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(34,197,94,0.3), 0 4px 6px -4px rgba(34,197,94,0.1);
+    }
+  </style>
 </head>
 <body class="min-h-screen">
-
-    <nav class="bg-white shadow-md sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20">
-                <div class="flex">
-                    <div class="flex-shrink-0 flex items-center">
-                        <span class="text-3xl font-extrabold text-green-600 tracking-tight">
-                            <i class="fas fa-seedling mr-2"></i>BloomWatch
-                        </span>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <button id="nav-home" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Home</button>
-                    <button id="nav-map" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Map</button>
-                    <a href="applications.html" id="nav-applications" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium transition duration-150">Impact & Applications</a>
-                </div>
-            </div>
+  <nav class="bg-white shadow-md sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-20">
+        <div class="flex items-center">
+          <span class="text-3xl font-extrabold text-green-600 tracking-tight">
+            <i class="fas fa-seedling mr-2"></i>BloomWatch
+          </span>
         </div>
-    </nav>
-
-    <main class="max-w-7xl mx-auto">
-        <div id="home-view" class="view active-view text-gray-800">
-            <header class="text-center py-20 bg-green-50 rounded-xl shadow-lg mt-8">
-                <h1 class="text-6xl font-extrabold mb-4 text-gray-900">Witness the Pulse of Life.</h1>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-                    BloomWatch harnesses the power of NASA Earth Observations to track, visualize, and predict **plant flowering phenology** around the globe. Understand climate impacts on ecosystems, agriculture, and public health.
-                </p>
-                <button id="explore-map-btn" class="btn-primary bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-700">
-                    Explore the Global Bloom Map
-                </button>
-            </header>
-
-            <section class="mt-16 bg-white p-8 rounded-xl shadow-lg max-w-4xl mx-auto">
-                <h2 class="text-3xl font-bold text-green-600 mb-4">What is Phenology?</h2>
-                <p class="text-gray-700 text-lg">
-                    Phenology is the scientific study of seasonal natural events, such as flowering, migration, and breeding in plants and animals, 
-                    and how these events are influenced by climate and environmental changes. 
-                    By tracking these cycles, phenology helps us understand the timing of nature’s processes and 
-                    how ecosystems respond to global warming and other environmental shifts.
-                </p>
-            </section>
-
-            <section class="mt-16 grid md:grid-cols-3 gap-8">
-                <div class="bg-white p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl">
-                    <h2 class="text-2xl font-semibold text-green-600 mb-3">Data Driven</h2>
-                    <p class="text-gray-600">Utilizing high temporal and spectral resolution data from Landsat, MODIS, and VIIRS to detect subtle changes in vegetation health and flowering cycles.</p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl">
-                    <h2 class="text-2xl font-semibold text-green-600 mb-3">Predictive Insights</h2>
-                    <p class="text-gray-600">Analyze multi-year trends to forecast peak bloom timing, providing crucial lead time for farmers, allergists, and conservation efforts.</p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl">
-                    <h2 class="text-2xl font-semibold text-green-600 mb-3">For All Users</h2>
-                    <p class="text-gray-600">Designed for scalability, from global monitoring to informing conservation decisions in your specific local region.</p>
-                </div>
-            </section>
+        <div class="flex items-center space-x-4">
+          <button id="nav-home" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium">Home</button>
+          <button id="nav-map" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium">Map</button>
+          <a href="applications.html" class="text-gray-600 hover:text-green-600 px-3 py-2 rounded-md text-lg font-medium">Impact & Applications</a>
         </div>
+      </div>
+    </div>
+  </nav>
 
-        <div id="map-view" class="view">
-            <h1 class="text-3xl font-bold mb-4 text-gray-800">Global Phenology Tracker</h1>
-            <p class="text-gray-600 mb-4">Visualizing the intensity and timing of flowering events using the latest NASA Earth Observation data.</p>
-            <div id="map-container" class="rounded-xl shadow-xl border-4 border-green-200"></div>
-        </div>
-    </main>
+  <main class="max-w-7xl mx-auto">
+    <div id="home-view" class="view active-view text-gray-800">
+      <header class="text-center py-20 bg-green-50 rounded-xl shadow-lg mt-8">
+        <h1 class="text-6xl font-extrabold mb-4 text-gray-900">Witness the Pulse of Life.</h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+          BloomWatch harnesses NASA Earth Observations to track, visualize, and predict <em>plant flowering phenology</em>.
+        </p>
+        <button id="explore-map-btn" class="btn-primary bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-700">
+          Explore the Global Bloom Map
+        </button>
+      </header>
+    </div>
 
-    <script>
-        const app = {
-            map: null,
-            currentView: 'home-view',
-            mapContainerId: 'map-container',
-            views: ['home-view', 'map-view'],
-            currentGeoJsonLayer: null,
+    <div id="map-view" class="view">
+      <h1 class="text-3xl font-bold mb-4 text-gray-800">Global Phenology + NDVI</h1>
+      <p class="text-gray-600 mb-4">Click anywhere to fetch live NASA imagery + NDVI value and place a colored marker.</p>
+      <div id="map-container" class="rounded-xl shadow-xl border-4 border-green-200"></div>
+    </div>
+  </main>
 
-            fetchBloomData: function() {
-                const dataPath = './data/bloom_phenology.json'; 
-                console.log('Attempting to fetch data from:', dataPath);
+  <script>
+    const app = {
+      map: null,
+      NASA_API_KEY: 'DEMO_KEY', // Replace with your NASA key
+      todayISO() {
+        return new Date().toISOString().slice(0, 10);
+      },
 
-                fetch(dataPath)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`File not found or server error (${response.status}).`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log(`SUCCESS: Loaded ${data.features.length} real bloom points.`);
-                        this.loadBloomData(data);
-                    })
-                    .catch(error => {
-                        console.error(`CRITICAL ERROR: Failed to fetch bloom data.`, error.message, 'Falling back to mock data.');
-                        this.loadBloomData(this.mockBloomData);
-                    });
-            },
+      addNasaNdviLayer() {
+        const date = this.todayISO();
+        const ndviLayer = L.tileLayer(
+          `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_NDVI_16Day/default/${date}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,
+          {
+            attribution: 'Imagery © NASA GIBS / MODIS NDVI',
+            minZoom: 1,
+            maxZoom: 9,
+            opacity: 0.85
+          }
+        );
+        ndviLayer.addTo(this.map);
 
-            mockBloomData: {
-                "type": "FeatureCollection",
-                "features": [
-                    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-97.7431, 30.2672] }, "properties": { "name": "Texas Wildflower Peak (MOCK)", "intensity": "High", "date": "2025-03-20", "species": "Bluebonnet" } },
-                    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-106.601, 35.106] }, "properties": { "name": "New Mexico Desert Bloom (MOCK)", "intensity": "Medium", "date": "2025-04-15", "species": "Prickly Pear" } },
-                    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-80.1918, 25.7617] }, "properties": { "name": "Florida Citrus Bloom (MOCK)", "intensity": "Very High", "date": "2025-02-01", "species": "Orange Blossom" } }
-                ]
-            },
-
-            initMap: function() {
-                if (this.map) return;
-
-                try {
-                    this.map = L.map(this.mapContainerId).setView([20, 0], 2);
-
-                    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
-                    }).addTo(this.map);
-
-                    this.fetchBloomData();
-                    console.log("Leaflet map initialized successfully.");
-
-                } catch (error) {
-                    console.error("Error initializing Leaflet map:", error);
-                    document.getElementById(this.mapContainerId).innerHTML = '<div class="flex items-center justify-center h-full text-red-600 font-semibold">Error loading map: Check console for details.</div>';
-                }
-            },
-
-            loadBloomData: function(data) {
-                if (this.currentGeoJsonLayer) {
-                    this.map.removeLayer(this.currentGeoJsonLayer);
-                }
-
-                const getMarkerColor = (intensity) => {
-                    switch (intensity) {
-                        case 'Very High': return 'red';
-                        case 'High': return 'orange';
-                        case 'Medium': return 'yellow';
-                        default: return 'green';
-                    }
-                };
-
-                this.currentGeoJsonLayer = L.geoJSON(data, {
-                    pointToLayer: (feature, latlng) => {
-                        return L.circleMarker(latlng, {
-                            radius: 8,
-                            fillColor: getMarkerColor(feature.properties.intensity),
-                            color: "#000",
-                            weight: 1,
-                            opacity: 1,
-                            fillOpacity: 0.7
-                        });
-                    },
-                    onEachFeature: (feature, layer) => {
-                        if (feature.properties) {
-                            const props = feature.properties;
-                            layer.bindPopup(`
-                                <h3 class="font-bold">${props.name || 'Bloom Event'}</h3>
-                                <strong>Species:</strong> ${props.species || 'N/A'}<br>
-                                <strong>Intensity:</strong> ${props.intensity || 'N/A'}<br>
-                                <strong>Peak Date:</strong> ${props.date || 'N/A'}<br>
-                                <p class="text-xs mt-2">Data Source: NASA MODIS NDVI</p>
-                            `);
-                        }
-                    }
-                }).addTo(this.map);
-                
-                if (data.features.length > 0) {
-                    const bounds = this.currentGeoJsonLayer.getBounds();
-                    if (bounds.isValid()) {
-                        this.map.fitBounds(bounds, { padding: [50, 50] });
-                    } else {
-                        console.warn("Bounds invalid. Manually setting view to the first point.");
-                        const firstCoord = data.features[0].geometry.coordinates;
-                        this.map.setView([firstCoord[1], firstCoord[0]], 8); 
-                    }
-                }
-            },
-
-            showView: function(viewId) {
-                this.views.forEach(id => {
-                    document.getElementById(id).classList.remove('active-view');
-                });
-
-                const newView = document.getElementById(viewId);
-                newView.classList.add('active-view');
-
-                this.currentView = viewId;
-
-                if (viewId === this.mapContainerId.replace('-container', '-view')) {
-                    this.initMap();
-                    if (this.map) {
-                        setTimeout(() => {
-                            this.map.invalidateSize();
-                            if (this.currentGeoJsonLayer) {
-                                const bounds = this.currentGeoJsonLayer.getBounds();
-                                if (bounds.isValid()) {
-                                    this.map.fitBounds(bounds, { padding: [50, 50] });
-                                } else {
-                                    const firstCoord = this.currentGeoJsonLayer.toGeoJSON().features[0].geometry.coordinates;
-                                    this.map.setView([firstCoord[1], firstCoord[0]], 8);
-                                }
-                            }
-                        }, 500);
-                    }
-                }
-            },
-
-            init: function() {
-                document.getElementById('nav-home').addEventListener('click', () => this.showView('home-view'));
-                document.getElementById('nav-map').addEventListener('click', () => this.showView('map-view'));
-                document.getElementById('explore-map-btn').addEventListener('click', () => this.showView('map-view'));
-                this.showView('home-view');
-            }
+        const legend = L.control({ position: 'bottomleft' });
+        legend.onAdd = () => {
+          const div = L.DomUtil.create('div', 'bg-white p-3 rounded-lg shadow text-sm');
+          div.innerHTML = `
+            <div class="font-semibold mb-1">NDVI Color Legend</div>
+            <div><span style="color:green;">●</span> High NDVI</div>
+            <div><span style="color:gold;">●</span> Medium NDVI</div>
+            <div><span style="color:gray;">●</span> Low NDVI / Sparse</div>
+          `;
+          return div;
         };
+        legend.addTo(this.map);
+      },
 
-        window.onload = () => app.init();
-    </script>
+      async fetchNDVIFromServer(lat, lon) {
+        const url = `/api/ndvi?lat=${lat}&lon=${lon}`;
+        try {
+          const resp = await fetch(url);
+          if (!resp.ok) throw new Error(`NDVI fetch failed (${resp.status})`);
+          return await resp.json();
+        } catch (err) {
+          console.warn("fetchNDVIFromServer error:", err);
+          return null;
+        }
+      },
+
+      ndviToColor(ndvi) {
+        if (ndvi === null || isNaN(ndvi)) return "gray";
+        if (ndvi >= 0.6) return "green";
+        if (ndvi >= 0.3) return "gold";
+        return "gray";
+      },
+
+      async initMap() {
+        if (this.map) return;
+        this.map = L.map("map-container").setView([20, 0], 2);
+
+        L.tileLayer(
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+          { attribution: "Tiles © Esri, USGS, NASA" }
+        ).addTo(this.map);
+
+        this.addNasaNdviLayer();
+
+        this.map.on("click", (e) => this.handleClick(e));
+      },
+
+      async handleClick(e) {
+        const { lat, lng } = e.latlng;
+        const popup = L.popup()
+          .setLatLng(e.latlng)
+          .setContent(`<div class="p-2 text-sm text-gray-600">Fetching imagery & NDVI…</div>`)
+          .openOn(this.map);
+
+        let imgUrl = null;
+        try {
+          const date = this.todayISO();
+          const imgUrlRes = await fetch(
+            `https://api.nasa.gov/planetary/earth/imagery?lat=${lat}&lon=${lng}&date=${date}&dim=0.15&api_key=${this.NASA_API_KEY}`
+          );
+          if (!imgUrlRes.ok) throw new Error(`Imagery error ${imgUrlRes.status}`);
+          const blob = await imgUrlRes.blob();
+          imgUrl = URL.createObjectURL(blob);
+        } catch (err) {
+          console.warn("Imagery fetch error:", err);
+        }
+
+        const ndviData = await this.fetchNDVIFromServer(lat, lng);
+        let ndviValue = ndviData?.ndvi ?? null;
+        let ndviDate = ndviData?.date ?? null;
+
+        const color = this.ndviToColor(ndviValue);
+        L.circleMarker([lat, lng], {
+          radius: 8,
+          fillColor: color,
+          color: "#333",
+          weight: 1,
+          fillOpacity: 0.9
+        }).addTo(this.map);
+
+        let popupHtml = `
+          <div class="text-sm text-gray-800">
+            <div class="font-semibold text-green-700 mb-1">Phenology / Vegetation Data</div>
+            <div><strong>Lat:</strong> ${lat.toFixed(3)}, <strong>Lon:</strong> ${lng.toFixed(3)}</div>
+            <div><strong>NDVI:</strong> ${ndviValue !== null ? ndviValue.toFixed(3) + " (Date: " + ndviDate + ")" : "Unavailable"}</div>
+        `;
+        if (imgUrl) {
+          popupHtml += `<img src="${imgUrl}" alt="Satellite image" class="mt-2 rounded-lg border border-green-200 shadow-md w-64" />`;
+        }
+        popupHtml += `<div class="mt-2 text-xs text-gray-500">Imagery: NASA Earth Imagery | NDVI: via server proxy</div></div>`;
+
+        popup.setContent(popupHtml);
+      },
+
+      showView(viewId) {
+        this.views.forEach(id => document.getElementById(id).classList.remove("active-view"));
+        document.getElementById(viewId).classList.add("active-view");
+        if (viewId === "map-view") {
+          this.initMap();
+          setTimeout(() => this.map.invalidateSize(), 300);
+        }
+      },
+
+      init() {
+        this.views = ["home-view", "map-view"];
+        document.getElementById("nav-home").onclick = () => this.showView("home-view");
+        document.getElementById("nav-map").onclick = () => this.showView("map-view");
+        document.getElementById("explore-map-btn").onclick = () => this.showView("map-view");
+        this.showView("home-view");
+      }
+    };
+
+    window.onload = () => app.init();
+  </script>
 </body>
 </html>

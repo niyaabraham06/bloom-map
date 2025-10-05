@@ -1,54 +1,118 @@
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import json
-import random
-import os
+import requests
+import time
 
 app = FastAPI()
 
-# Allow your frontend to call this API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Endpoint to serve GeoJSON
-@app.get("/geojson")
-async def get_geojson():
-    # Example: generate random bloom points
-    features = []
-    for _ in range(10):
-        features.append({
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [
-                    round(random.uniform(75.0, 75.1), 6),
-                    round(random.uniform(9.9, 10.0), 6)
-                ]
-            },
-            "properties": {
-                "name": "High Vegetation Zone",
-                "intensity": "Moderate Greenness",
-                "date": "2024 Bloom Period Proxy",
-                "species_proxy": "Generic Vegetation",
-                "ndvi_peak": round(random.uniform(0.2, 0.4), 2)
-            }
-        })
+EARTHDATA_USERNAME = "irfans25"
+EARTHDATA_PASSWORD = "Irfanmoh@123"
+APPEEARS_API_BASE = "https://appeears.earthdatacloud.nasa.gov/api"
 
-    geojson = {
-        "type": "FeatureCollection",
-        "features": features
+def get_token():
+    """
+    Logs in to AppEEARS, returns Bearer token. 
+    """
+    # Basic auth login
+    login_url = f"{APPEEARS_API_BASE}/login"
+    resp = requests.post(
+        login_url,
+        auth=(EARTHDATA_USERNAME, EARTHDATA_PASSWORD),
+        data={"grant_type": "client_credentials"}
+    )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Login failed: {resp.text}")
+    j = resp.json()
+    token = j.get("token")
+    return token
+
+@app.get("/api/ndvi")
+async def api_ndvi(lat: float = Query(...), lon: float = Query(...)):
+    # 1. Get token
+    token = get_token()
+
+    # 2. Create a point request task
+    task_url = f"{APPEEARS_API_BASE}/task"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
     }
+    # Build the JSON body
+    body = {
+        "taskType": "point", 
+        "params": {
+            "dates": [
+                {"startDate": "2025-01-01", "endDate": "2025-12-31"}
+            ],
+            "layers": [
+                {"product": "MOD13Q1.061", "bands": ["250m_16_days_NDVI"]}  # example product
+            ],
+            "geom": {
+                "type": "Point",
+                "coordinates": [lon, lat]
+            }
+        }
+    }
+    resp = requests.post(task_url, headers=headers, json=body)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=resp.status_code, detail=resp.text)
+    task = resp.json()
+    task_id = task.get("task_id")
 
-    return geojson
+    # 3. Poll until task completes
+    status_url = f"{APPEEARS_API_BASE}/task/{task_id}"
+    for _ in range(20):
+        st = requests.get(status_url, headers={"Authorization": f"Bearer {token}"})
+        stj = st.json()
+        status = stj.get("status")
+        if status == "done":
+            break
+        time.sleep(3)
+    else:
+        raise HTTPException(status_code=500, detail="Task not completed in time")
 
-# Endpoint to serve index.html
-@app.get("/")
-async def root():
-    file_path = os.path.join(os.path.dirname(__file__), "index.html")
-    return FileResponse(file_path)
+    # 4. Get results (bundle)
+    bundle_url = f"{APPEEARS_API_BASE}/bundle/{task_id}"
+    bundle_resp = requests.get(bundle_url, headers={"Authorization": f"Bearer {token}"})
+    if bundle_resp.status_code != 200:
+        raise HTTPException(status_code=bundle_resp.status_code, detail=bundle_resp.text)
+    bundle = bundle_resp.json()
+    # find NDVI file in bundle, download or parse
+    # For simplicity, assume a CSV exists with NDVI
+    # This part you must inspect the bundle structure
+    files = bundle.get("files", [])
+    # pick first file with "ndvi" in name
+    ndvi_file = None
+    for f in files:
+        if "NDVI" in f.get("file_name", ""):
+            ndvi_file = f
+            break
+    if not ndvi_file:
+        raise HTTPException(status_code=500, detail="No NDVI file in bundle")
+
+    download_url = ndvi_file.get("url")
+    file_resp = requests.get(download_url, headers={"Authorization": f"Bearer {token}"})
+    if file_resp.status_code != 200:
+        raise HTTPException(status_code=file_resp.status_code, detail="Failed download NDVI file")
+
+    # parse CSV (example) to get NDVI value
+    # Assume first data row has NDVI
+    content = file_resp.text.splitlines()
+    # skip header, take first data row
+    if len(content) < 2:
+        raise HTTPException(status_code=500, detail="Empty NDVI data")
+    header = content[0].split(",")
+    data = content[1].split(",")
+    # find index of NDVI column
+    idx = header.index("Value") if "Value" in header else 1
+    ndvi_val = float(data[idx])
+
+    return JSONResponse({"ndvi": ndvi_val, "date": data[0]})
